@@ -5,6 +5,7 @@
  *      Author: TR001221
  */
 #include "NewEncoder.h"
+#include "utility\interrupt_pins.h"
 
 #ifdef DEBUG_MODE
 static const uint8_t log2FifoSize = 7;
