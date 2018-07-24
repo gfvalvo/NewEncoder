@@ -33,6 +33,10 @@ public:
 	~NewEncoder();
 	bool begin();
 	int16_t getValue();
+	int16_t operator =(int16_t val) {
+		_currentValue = val;
+		return _currentValue;
+	}
 
 private:
 	void pinChangeHandler(uint8_t pin);

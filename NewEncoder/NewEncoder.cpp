@@ -7,6 +7,8 @@
 
 #include "NewEncoder.h"
 
+elapsedMillis dog;
+
 #ifdef DEBUG_MODE
 static const uint8_t log2FifoSize = 7;
 const uint8_t fifoSize = 1 << log2FifoSize;
