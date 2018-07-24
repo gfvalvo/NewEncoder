@@ -19,14 +19,14 @@ void setup() {
 		}
 	}
 	Serial.println("Encoder Started Successfully");
-	previousValue = encoder1.getValue();
+	previousValue = encoder1;
 	Serial.println(previousValue);
 }
 
 void loop() {
 	int16_t currentValue;
 	uint8_t currentResetReading;
-	currentValue = encoder1.getValue();
+	currentValue = encoder1;
 	if (currentValue != previousValue) {
 		Serial.println(currentValue);
 		previousValue = currentValue;
@@ -36,7 +36,7 @@ void loop() {
 	if ((currentResetReading != lastResetReading)
 			&& (currentResetReading == 0)) {
 		encoder1 = 0;
-		currentValue = encoder1.getValue();
+		currentValue = encoder1;
 		Serial.println(currentValue);
 		previousValue = currentValue;
 	}

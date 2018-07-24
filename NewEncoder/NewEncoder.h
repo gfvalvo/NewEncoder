@@ -4,7 +4,6 @@
  *  Created on: Jul 18, 2018
  *      Author: TR001221
  */
-
 #ifndef NEWENCODER_H_
 #define NEWENCODER_H_
 
@@ -32,9 +31,14 @@ public:
 	NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue);
 	~NewEncoder();
 	bool begin();
-	int16_t getValue();
+	int16_t setValue(int16_t);
+	int16_t getValue() {
+		return _currentValue;
+	}
 	int16_t operator =(int16_t val) {
-		_currentValue = val;
+		return setValue(val);
+	}
+	operator int16_t() const {
 		return _currentValue;
 	}
 
@@ -268,6 +272,5 @@ private:
 	PIN_CHANGE_ISR(63)
 #endif
 };
-
 
 #endif /* NEWENCODER_H_ */

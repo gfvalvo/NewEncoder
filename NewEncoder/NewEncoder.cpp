@@ -87,7 +87,13 @@ bool NewEncoder::begin() {
 	return true;
 }
 
-int16_t NewEncoder::getValue() {
+int16_t NewEncoder::setValue(int16_t val) {
+	if (val < _minValue) {
+		val = _minValue;
+	} else if (val > _maxValue) {
+		val = _maxValue;
+	}
+	_currentValue = val;
 	return _currentValue;
 }
 
