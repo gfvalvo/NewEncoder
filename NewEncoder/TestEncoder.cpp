@@ -2,7 +2,7 @@
 #include "TestEncoder.h"
 #include "NewEncoder.h"
 
-NewEncoder encoder1(0, 1, -20, 20);
+NewEncoder encoder1(22, 23, -20, 20);
 
 int16_t previousValue;
 void setup() {
