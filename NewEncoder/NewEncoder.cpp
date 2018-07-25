@@ -146,6 +146,10 @@ bool NewEncoder::begin() {
 	return true;
 }
 
+bool NewEncoder::enabled() {
+	return active;
+}
+
 int16_t NewEncoder::setValue(int16_t val) {
 	if (val < _minValue) {
 		val = _minValue;

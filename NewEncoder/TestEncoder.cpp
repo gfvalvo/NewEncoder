@@ -3,7 +3,7 @@
 #include "NewEncoder.h"
 
 const uint8_t resetPin = 0;
-uint8_t lastResetReading;
+uint8_t lastResetSwitchState;
 int16_t encoder0PrevValue, encoder1PrevValue;
 
 NewEncoder *dummyEncoder0, *encoder0, *encoder1;
@@ -12,7 +12,7 @@ void setup() {
 	delay(2000);
 	Serial.println("Starting");
 	pinMode(resetPin, INPUT_PULLUP);
-	lastResetReading = digitalRead(resetPin);
+	lastResetSwitchState = digitalRead(resetPin);
 
 	dummyEncoder0 = new NewEncoder();
 	encoder0 = new NewEncoder();
@@ -48,7 +48,8 @@ void setup() {
 
 void loop() {
 	int16_t currentValue;
-	uint8_t currentResetReading;
+	uint8_t currentResetSwitchState;
+
 	currentValue = *encoder0;
 	if (currentValue != encoder0PrevValue) {
 		Serial.print("encoder0: ");
@@ -56,16 +57,18 @@ void loop() {
 		encoder0PrevValue = currentValue;
 	}
 
-	currentValue = *encoder1;
-	if (currentValue != encoder1PrevValue) {
-		Serial.print("encoder1: ");
-		Serial.println(currentValue);
-		encoder1PrevValue = currentValue;
+	if (encoder1->enabled()) {
+		currentValue = *encoder1;
+		if (currentValue != encoder1PrevValue) {
+			Serial.print("encoder1: ");
+			Serial.println(currentValue);
+			encoder1PrevValue = currentValue;
+		}
 	}
 
-	currentResetReading = digitalRead(resetPin);
-	if ((currentResetReading != lastResetReading)
-			&& (currentResetReading == 0)) {
+	currentResetSwitchState = digitalRead(resetPin);
+	if ((currentResetSwitchState != lastResetSwitchState)
+			&& (currentResetSwitchState == 0)) {
 		*encoder0 = 0;
 		currentValue = *encoder0;
 		Serial.print("encoder0: ");
@@ -81,7 +84,7 @@ void loop() {
 			Serial.println("encoder1 deleted");
 		}
 	}
-	lastResetReading = currentResetReading;
+	lastResetSwitchState = currentResetSwitchState;
 
 #ifdef DEBUG_MODE
 	static uint8_t readPointer = 0;
@@ -103,24 +106,24 @@ void loop() {
 		;
 		readPointer &= fifoMask;
 		switch (localTransistionType) {
-		case AF:
+			case AF:
 			Serial.println("AF");
 			break;
 
-		case AR:
+			case AR:
 			Serial.println("AR");
 			break;
 
-		case BF:
+			case BF:
 			Serial.println("BF");
 			break;
 
-		case BR:
+			case BR:
 			Serial.println("BR");
 			break;
 
-		default:
-		break;
+			default:
+			break;
 		}
 	}
 #endif

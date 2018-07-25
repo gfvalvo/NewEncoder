@@ -34,6 +34,7 @@ public:
 	bool begin(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue);
 	bool begin();
 	void end();
+	bool enabled();
 	int16_t setValue(int16_t);
 	int16_t getValue();
 	int16_t operator =(int16_t val);
