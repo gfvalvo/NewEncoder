@@ -2,43 +2,84 @@
 #include "TestEncoder.h"
 #include "NewEncoder.h"
 
-NewEncoder encoder1(22, 23, -20, 20);
-
 const uint8_t resetPin = 0;
 uint8_t lastResetReading;
-int16_t previousValue;
+int16_t encoder0PrevValue, encoder1PrevValue;
+
+NewEncoder *dummyEncoder0, *encoder0, *encoder1;
 void setup() {
 	Serial.begin(115200);
 	delay(2000);
 	Serial.println("Starting");
 	pinMode(resetPin, INPUT_PULLUP);
 	lastResetReading = digitalRead(resetPin);
-	if (!encoder1.begin()) {
-		Serial.println("Encoder Failed to Start");
+
+	dummyEncoder0 = new NewEncoder();
+	encoder0 = new NewEncoder();
+	encoder1 = new NewEncoder();
+
+	if (!dummyEncoder0->begin(0, 1, -20, 20)) {
+		Serial.println("dummyEncoder0 Failed to Start");
 		while (1) {
 		}
 	}
-	Serial.println("Encoder Started Successfully");
-	previousValue = encoder1;
-	Serial.println(previousValue);
+	Serial.println("dummyEncoder0 Started Successfully");
+
+	if (!encoder1->begin(11, 12, -20, 20)) {
+		Serial.println("encoder1 Failed to Start");
+		while (1) {
+		}
+	}
+	Serial.println("encoder1 Started Successfully");
+	encoder1PrevValue = *encoder1;
+	Serial.print("encoder1: ");
+	Serial.println(encoder1PrevValue);
+
+	if (!encoder0->begin(22, 23, -20, 20)) {
+		Serial.println("encoder0 Failed to Start");
+		while (1) {
+		}
+	}
+	Serial.println("encoder0 Started Successfully");
+	encoder0PrevValue = *encoder0;
+	Serial.print("encoder0: ");
+	Serial.println(encoder0PrevValue);
 }
 
 void loop() {
 	int16_t currentValue;
 	uint8_t currentResetReading;
-	currentValue = encoder1;
-	if (currentValue != previousValue) {
+	currentValue = *encoder0;
+	if (currentValue != encoder0PrevValue) {
+		Serial.print("encoder0: ");
 		Serial.println(currentValue);
-		previousValue = currentValue;
+		encoder0PrevValue = currentValue;
+	}
+
+	currentValue = *encoder1;
+	if (currentValue != encoder1PrevValue) {
+		Serial.print("encoder1: ");
+		Serial.println(currentValue);
+		encoder1PrevValue = currentValue;
 	}
 
 	currentResetReading = digitalRead(resetPin);
 	if ((currentResetReading != lastResetReading)
 			&& (currentResetReading == 0)) {
-		encoder1 = 0;
-		currentValue = encoder1;
+		*encoder0 = 0;
+		currentValue = *encoder0;
+		Serial.print("encoder0: ");
 		Serial.println(currentValue);
-		previousValue = currentValue;
+		encoder0PrevValue = currentValue;
+		if (dummyEncoder0) {
+			delete dummyEncoder0;
+			dummyEncoder0 = nullptr;
+			Serial.println("dummyEncoder0 deleted");
+		} else if (encoder1) {
+			delete encoder1;
+			encoder1 = nullptr;
+			Serial.println("encoder1 deleted");
+		}
 	}
 	lastResetReading = currentResetReading;
 
