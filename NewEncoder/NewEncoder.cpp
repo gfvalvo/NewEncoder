@@ -1,24 +1,8 @@
 /*
  * NewEncoder.cpp
- *
- *  Created on: Jul 18, 2018
- *      Author: TR001221
  */
 
 #include "NewEncoder.h"
-
-elapsedMillis dog;
-
-#ifdef DEBUG_MODE
-static const uint8_t log2FifoSize = 7;
-const uint8_t fifoSize = 1 << log2FifoSize;
-const uint8_t fifoMask = fifoSize - 1;
-volatile bool overflow = false;
-volatile uint8_t fillLevel = 0;
-volatile uint8_t fifo[fifoSize];
-
-static volatile uint8_t writePointer = 0;
-#endif
 
 const uint8_t NewEncoder::_transistionTable[][4] = {
 		{ _cwState2, _cwState3, _cwState2, _cwState1 }, // cwState2 = 0b000
@@ -79,9 +63,13 @@ void NewEncoder::end() {
 	if (_numEncoders == 0) {
 		return;
 	}
+	noInterrupts()
+	;
 	for (uint8_t j = encoderIndex; j < _numEncoders; j++) {
 		_encoderTable[j] = _encoderTable[j + 1];
 	}
+	interrupts()
+	;
 }
 
 bool NewEncoder::begin(uint8_t aPin, uint8_t bPin, int16_t minValue,
@@ -126,23 +114,29 @@ bool NewEncoder::begin() {
 		return false;
 	}
 
+	if (_numEncoders >= _maxNumEncoders) {
+		return false;
+	}
+
 	if (_numEncoders == 0) {
 		for (uint8_t index = 0; index < _maxNumEncoders; index++) {
 			_encoderTable[index] = nullptr;
 		}
 	}
+
 	_encoderTable[_numEncoders++] = this;
 
 	pinMode(_aPin, INPUT_PULLUP);
 	pinMode(_bPin, INPUT_PULLUP);
 	_aPinValue = DIRECT_PIN_READ(_aPin_register, _aPin_bitmask);
+	_aPinValue = DIRECT_PIN_READ(_aPin_register, _aPin_bitmask); // First pin reading after PinMode seems to be unreliable
 	_bPinValue = DIRECT_PIN_READ(_bPin_register, _bPin_bitmask);
+	_bPinValue = DIRECT_PIN_READ(_bPin_register, _bPin_bitmask); // First pin reading after PinMode seems to be unreliable
 	_currentState = (_bPinValue << 1) | _aPinValue;
 	_currentValue = (_minValue + _maxValue) / 2;
-
+	active = true;
 	attachInterrupt(_interruptA, aPinIsr, CHANGE);
 	attachInterrupt(_interruptB, bPinIsr, CHANGE);
-	active = true;
 	return true;
 }
 
@@ -194,6 +188,27 @@ NewEncoder::operator int16_t() const {
 #endif
 }
 
+bool NewEncoder::setLimits(int16_t minValue, int16_t maxValue) {
+	int16_t newValue;
+	if (minValue >= maxValue) {
+		return false;
+	}
+	newValue = getValue();
+	if (newValue < minValue) {
+		newValue = minValue;
+	} else if (newValue > maxValue) {
+		newValue = maxValue;
+	}
+	noInterrupts()
+	;
+	_minValue = minValue;
+	_maxValue = maxValue;
+	_currentValue = newValue;
+	interrupts()
+	;
+	return true;
+}
+
 void NewEncoder::aPinChange() {
 	uint8_t newPinValue = DIRECT_PIN_READ(_aPin_register, _aPin_bitmask);
 	if (newPinValue == _aPinValue) {
@@ -201,9 +216,9 @@ void NewEncoder::aPinChange() {
 	}
 	_aPinValue = newPinValue;
 	if (_aPinValue) {
-		pinChangeHandler(AR);
+		pinChangeHandler (aPinRising);
 	} else {
-		pinChangeHandler(AF);
+		pinChangeHandler (aPinFalling);
 	}
 }
 
@@ -214,24 +229,14 @@ void NewEncoder::bPinChange() {
 	}
 	_bPinValue = newPinValue;
 	if (_bPinValue) {
-		pinChangeHandler(BR);
+		pinChangeHandler (bPinRising);
 	} else {
-		pinChangeHandler(BF);
+		pinChangeHandler (bPinFalling);
 	}
 }
 
 void NewEncoder::pinChangeHandler(uint8_t index) {
 	uint8_t newState;
-
-#ifdef DEBUG_MODE
-	if (fillLevel < fifoSize) {
-		fillLevel++;
-		fifo[writePointer++] = index;
-		writePointer &= fifoMask;
-	} else {
-		overflow = true;
-	}
-#endif
 
 	newState = NewEncoder::_transistionTable[_currentState][index];
 	_currentState = newState & _stateMask;

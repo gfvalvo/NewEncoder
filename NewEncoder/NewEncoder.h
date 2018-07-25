@@ -1,8 +1,5 @@
 /*
  * NewEncoder.h
- *
- *  Created on: Jul 18, 2018
- *      Author: TR001221
  */
 #ifndef NEWENCODER_H_
 #define NEWENCODER_H_
@@ -11,21 +8,6 @@
 #include "utility\interrupt_pins.h"
 #include "utility\direct_pin_read.h"
 
-//#define DEBUG_MODE
-
-#define AF 0b00
-#define AR 0b01
-#define BF 0b10
-#define BR 0b11
-
-#ifdef DEBUG_MODE
-extern const uint8_t fifoSize;
-extern const uint8_t fifoMask;
-extern volatile bool overflow;
-extern volatile uint8_t fillLevel;
-extern volatile uint8_t fifo[];
-#endif
-
 class NewEncoder {
 public:
 	NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue);
@@ -33,6 +15,7 @@ public:
 	~NewEncoder();
 	bool begin(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue);
 	bool begin();
+	bool setLimits(int16_t minValue, int16_t maxValue);
 	void end();
 	bool enabled();
 	int16_t setValue(int16_t);
@@ -70,6 +53,10 @@ private:
 	static const uint8_t _ccwState3 = 0b110;
 	static const uint8_t _transistionTable[][4];
 	static const uint8_t _maxNumEncoders = CORE_NUM_INTERRUPT / 2;
+	static const uint8_t aPinFalling = 0b00;
+	static const uint8_t aPinRising = 0b01;
+	static const uint8_t bPinFalling = 0b10;
+	static const uint8_t bPinRising = 0b11;
 	static NewEncoder *_encoderTable[];
 
 	static void aPinIsr();
