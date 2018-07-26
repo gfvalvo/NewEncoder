@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "NewEncoder.h"
 
-NewEncoder encoders[] = { { 0, 1, -20, 20 }, { 20, 21, 0, 50 }, { 5, 6, -25, 0 } };
+NewEncoder encoders[] = { { 0, 1, -20, 20 }, { 20, 21, 0, 50 }, { 5, 6, -25, 0 }, { 11, 12, -10, 25 } };
 const uint8_t numEncoders = sizeof(encoders) / sizeof(NewEncoder);
 int16_t prevEncoderValue[numEncoders];
 
@@ -17,8 +17,7 @@ void setup() {
 			Serial.print(F("Encoder: "));
 			Serial.print(index);
 			Serial.println(
-					F(
-							" Failed to Start. Check pin assignments and available interrupts. Aborting."));
+					F(" Failed to Start. Check pin assignments and available interrupts. Aborting."));
 			while (1) {
 			}
 		} else {
