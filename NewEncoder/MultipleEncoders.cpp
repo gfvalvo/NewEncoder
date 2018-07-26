@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "NewEncoder.h"
 
-NewEncoder encoders[] = { { 2, 3, -20, 20 }, { 4, 5, 0, 50 } };
+NewEncoder encoders[] = { { 2, 3, -20, 20 }, { 4, 5, 0, 50 }, { 6, 7, -25, 0 } };
 const uint8_t numEncoders = sizeof(encoders) / sizeof(NewEncoder);
 int16_t prevEncoderValue[numEncoders];
 
