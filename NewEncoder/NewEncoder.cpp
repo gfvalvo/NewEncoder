@@ -19,7 +19,7 @@ uint8_t NewEncoder::_numEncoders = 0;
 NewEncoder *NewEncoder::_encoderTable[_maxNumEncoders];
 
 NewEncoder::NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue,
-		int16_t maxValue) {
+		int16_t maxValue, int16_t initalValue) {
 	_aPin = aPin;
 	_bPin = bPin;
 	_minValue = minValue;
@@ -30,11 +30,14 @@ NewEncoder::NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue,
 	_bPin_register = PIN_TO_BASEREG(bPin);
 	_aPin_bitmask = PIN_TO_BITMASK(aPin);
 	_bPin_bitmask = PIN_TO_BITMASK(bPin);
+	_currentValue = initalValue;
 	active = false;
+	configured = true;
 }
 
 NewEncoder::NewEncoder() {
 	active = false;
+	configured = false;
 }
 
 NewEncoder::~NewEncoder() {
@@ -43,6 +46,7 @@ NewEncoder::~NewEncoder() {
 
 void NewEncoder::end() {
 	uint8_t encoderIndex;
+	configured = false;
 	if (!active) {
 		return;
 	}
@@ -72,10 +76,10 @@ void NewEncoder::end() {
 	;
 }
 
-bool NewEncoder::begin(uint8_t aPin, uint8_t bPin, int16_t minValue,
-		int16_t maxValue) {
+void NewEncoder::configure(uint8_t aPin, uint8_t bPin, int16_t minValue,
+		int16_t maxValue, int16_t initalValue) {
 	if (active) {
-		return false;
+		end();
 	}
 	_aPin = aPin;
 	_bPin = bPin;
@@ -87,37 +91,35 @@ bool NewEncoder::begin(uint8_t aPin, uint8_t bPin, int16_t minValue,
 	_bPin_register = PIN_TO_BASEREG(bPin);
 	_aPin_bitmask = PIN_TO_BITMASK(aPin);
 	_bPin_bitmask = PIN_TO_BITMASK(bPin);
-	return begin();
+	_currentValue = initalValue;
+	configured = true;
 }
 
 bool NewEncoder::begin() {
 	if (active) {
 		return false;
 	}
+	if (!configured) {
+		return false;
+	}
 	if (_aPin == _bPin) {
 		return false;
 	}
-
 	if (_interruptA == _interruptB) {
 		return false;
 	}
-
 	if (_interruptA < 0) {
 		return false;
 	}
-
 	if (_interruptB < 0) {
 		return false;
 	}
-
-	if (_minValue == _maxValue) {
+	if (_minValue >= _maxValue) {
 		return false;
 	}
-
 	if (_numEncoders >= _maxNumEncoders) {
 		return false;
 	}
-
 	if (_numEncoders == 0) {
 		for (uint8_t index = 0; index < _maxNumEncoders; index++) {
 			_encoderTable[index] = nullptr;
@@ -128,12 +130,20 @@ bool NewEncoder::begin() {
 
 	pinMode(_aPin, INPUT_PULLUP);
 	pinMode(_bPin, INPUT_PULLUP);
+	delay(1);
 	_aPinValue = DIRECT_PIN_READ(_aPin_register, _aPin_bitmask);
 	_aPinValue = DIRECT_PIN_READ(_aPin_register, _aPin_bitmask); // First pin reading after PinMode seems to be unreliable
 	_bPinValue = DIRECT_PIN_READ(_bPin_register, _bPin_bitmask);
 	_bPinValue = DIRECT_PIN_READ(_bPin_register, _bPin_bitmask); // First pin reading after PinMode seems to be unreliable
 	_currentState = (_bPinValue << 1) | _aPinValue;
-	_currentValue = (_minValue + _maxValue) / 2;
+
+	//_currentValue = (_minValue + _maxValue) / 2;
+	if (_currentValue > _maxValue) {
+		_currentValue = _maxValue;
+	} else if (_currentValue < _minValue) {
+		_currentValue = _minValue;
+	}
+
 	active = true;
 	attachInterrupt(_interruptA, aPinIsr, CHANGE);
 	attachInterrupt(_interruptB, bPinIsr, CHANGE);
@@ -186,27 +196,6 @@ NewEncoder::operator int16_t() const {
 #else
 	return _currentValue;
 #endif
-}
-
-bool NewEncoder::setLimits(int16_t minValue, int16_t maxValue) {
-	int16_t newValue;
-	if (minValue >= maxValue) {
-		return false;
-	}
-	newValue = getValue();
-	if (newValue < minValue) {
-		newValue = minValue;
-	} else if (newValue > maxValue) {
-		newValue = maxValue;
-	}
-	noInterrupts()
-	;
-	_minValue = minValue;
-	_maxValue = maxValue;
-	_currentValue = newValue;
-	interrupts()
-	;
-	return true;
 }
 
 void NewEncoder::aPinChange() {

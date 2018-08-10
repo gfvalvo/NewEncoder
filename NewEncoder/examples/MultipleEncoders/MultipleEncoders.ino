@@ -1,7 +1,8 @@
 #include "Arduino.h"
 #include "NewEncoder.h"
 
-NewEncoder encoders[] = { { 0, 1, -20, 20 }, { 20, 21, 0, 50 }, { 5, 6, -25, 0 }, { 11, 12, -10, 25 } };
+// Adjust number of encoders and pin assignments for particular processor. These work for Teensy 3.2.
+NewEncoder encoders[] = { { 0, 1, -20, 20, 0 }, { 20, 21, 0, 50, 25 }, { 5, 6, -25, 0, -13 }, { 11, 12, -10, 25, 8 } };
 const uint8_t numEncoders = sizeof(encoders) / sizeof(NewEncoder);
 int16_t prevEncoderValue[numEncoders];
 

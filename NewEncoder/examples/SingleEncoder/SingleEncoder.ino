@@ -7,7 +7,8 @@
 #include "Arduino.h"
 #include "NewEncoder.h"
 
-NewEncoder encoder(2, 3, -20, 20);
+// Pins 2 and 3 should work for many processors, including Uno
+NewEncoder encoder(2, 3, -20, 20, 0);
 int16_t prevEncoderValue;
 
 void setup() {

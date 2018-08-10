@@ -10,12 +10,11 @@
 
 class NewEncoder {
 public:
-	NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue);
+	NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue);
 	NewEncoder();
 	~NewEncoder();
-	bool begin(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue);
 	bool begin();
-	bool setLimits(int16_t minValue, int16_t maxValue);
+	void configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue);
 	void end();
 	bool enabled();
 	int16_t setValue(int16_t);
@@ -28,6 +27,7 @@ private:
 	void aPinChange();
 	void bPinChange();
 	bool active = false;
+	bool configured = false;
 	uint8_t _aPin = 0, _bPin = 0;
 	volatile int16_t _minValue = 0, _maxValue = 0;
 	int16_t _interruptA = -1, _interruptB = -1;
