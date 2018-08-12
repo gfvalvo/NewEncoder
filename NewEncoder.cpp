@@ -130,11 +130,9 @@ bool NewEncoder::begin() {
 
 	pinMode(_aPin, INPUT_PULLUP);
 	pinMode(_bPin, INPUT_PULLUP);
-	delay(1);
+	delay(2);  // Seems to help ensure first reading after pinMode is correct
 	_aPinValue = DIRECT_PIN_READ(_aPin_register, _aPin_bitmask);
-	_aPinValue = DIRECT_PIN_READ(_aPin_register, _aPin_bitmask); // First pin reading after PinMode seems to be unreliable
 	_bPinValue = DIRECT_PIN_READ(_bPin_register, _bPin_bitmask);
-	_bPinValue = DIRECT_PIN_READ(_bPin_register, _bPin_bitmask); // First pin reading after PinMode seems to be unreliable
 	_currentState = (_bPinValue << 1) | _aPinValue;
 
 	//_currentValue = (_minValue + _maxValue) / 2;
