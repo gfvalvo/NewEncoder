@@ -33,6 +33,7 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
     bool begin();
     
    **Arguments:** None
+   
    **Returns:**
     - true if encoder object successfully started, false otherwise
 
