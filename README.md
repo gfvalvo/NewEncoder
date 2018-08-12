@@ -41,20 +41,24 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
 
      void end();
   **Arguments:** None
-   **Returns:**    Nothing
+   
+  **Returns:**    Nothing
    
  ***Check if encoder object is enabled*** 
 
      bool enabled();
   **Arguments:** None
-   **Returns:**
+  
+  **Returns:**
     - true if encoder object is enabled, false otherwise
  
    ***Get current encoder value*** 
    
      int16_t getValue();
   **Arguments:** None
-   **Returns:**    current encoder value, as int16_t
+  
+  **Returns:**    current encoder value, as int16_t
+   
    Note: The library overrides ***operator int16_t***. So, if ***myEncoder*** is an encoder object, the following two statements are equivalent:
    
 
@@ -66,7 +70,9 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
      int16_t setValue(int16_t val);
   **Arguments:**
    - **int16_t val** - New encoder value. If required, it is constrained to be between **minValue** and **maxValue**.
-   **Returns:**    Value actually, as int16_t (may be ignored)
+  
+  **Returns:**    Value actually, as int16_t (may be ignored)
+   
    Note: The library overrides the ***assignment operator***. So, if ***myEncoder*** is an encoder object, the following two statements are equivalent:
    
     myEncoder.setValue(x);
