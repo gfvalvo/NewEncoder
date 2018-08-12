@@ -77,4 +77,8 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
    
     myEncoder.setValue(x);
     myEncoder = x;
+    
+    
+## Credits:
+The **direct_pin_read.h** and **interrupt_pins.h** header files were "borrowed" directly from the [PRJC Encoder Library](https://www.pjrc.com/teensy/td_libs_Encoder.html) Copyright (c)  PJRC.COM, LLC - Paul Stoffregen. All typical license verbiage applies.
 
