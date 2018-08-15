@@ -196,6 +196,24 @@ NewEncoder::operator int16_t() const {
 #endif
 }
 
+bool NewEncoder::upClick() {
+	if (clickUp) {
+		clickUp = false;
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool NewEncoder::downClick() {
+	if (clickDown) {
+		clickDown = false;
+		return true;
+	} else {
+		return false;
+	}
+}
+
 void NewEncoder::aPinChange() {
 	uint8_t newPinValue = DIRECT_PIN_READ(_aPin_register, _aPin_bitmask);
 	if (newPinValue == _aPinValue) {
@@ -227,11 +245,16 @@ void NewEncoder::pinChangeHandler(uint8_t index) {
 
 	newState = NewEncoder::_transistionTable[_currentState][index];
 	_currentState = newState & _stateMask;
+
 	if ((newState & _deltaMask) == _incrementDelta) {
+		clickUp = true;
+		clickDown = false;
 		if (_currentValue < _maxValue) {
 			_currentValue++;
 		}
 	} else if ((newState & _deltaMask) == _decrementDelta) {
+		clickUp = false;
+		clickDown = true;
 		if (_currentValue > _minValue) {
 			_currentValue--;
 		}

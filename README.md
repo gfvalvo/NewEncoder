@@ -78,6 +78,13 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
     myEncoder.setValue(x);
     myEncoder = x;
     
+   ***Check if endocer has be rotated*** 
+   
+    bool upClick();
+    bool downClick();
+  **Arguments:** None
+   **Returns:**    True if the encoder has been rotated at least onc quadrature cycle  in  either direction, false otherwise.
+      Note: Each call clears its internal flag. So, function will not return true again unless another quadrature cycle is executed. Also, the functions will return true even if the encoder's value is saturated at the lower or upper limit.
     
 ## Credits:
 The **direct_pin_read.h** and **interrupt_pins.h** header files were "borrowed" directly from the [PRJC Encoder Library](https://www.pjrc.com/teensy/td_libs_Encoder.html) Copyright (c)  PJRC.COM, LLC - Paul Stoffregen. All typical license verbiage applies.

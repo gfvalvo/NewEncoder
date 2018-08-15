@@ -34,15 +34,28 @@ void setup() {
 
 void loop() {
 	int16_t currentValue;
+	bool up, down;
 
 	for (uint8_t index = 0; index < numEncoders; index++) {
-		currentValue = encoders[index];
-		if (currentValue != prevEncoderValue[index]) {
-			Serial.print(F("Encoder"));
-			Serial.print(index);
-			Serial.print(F(": "));
-			Serial.println(currentValue);
-			prevEncoderValue[index] = currentValue;
+		up = encoders[index].upClick();
+		down = encoders[index].downClick();
+		if (up || down) {
+			currentValue = encoders[index];
+			if (currentValue != prevEncoderValue[index]) {
+				Serial.print(F("Encoder"));
+				Serial.print(index);
+				Serial.print(F(": "));
+				Serial.println(currentValue);
+				prevEncoderValue[index] = currentValue;
+			} else if (up) {
+				Serial.print(F("Encoder"));
+				Serial.print(index);
+				Serial.println(F(": At upper limit."));
+			} else {
+				Serial.print(F("Encoder"));
+				Serial.print(index);
+				Serial.println(F(": At lower limit."));
+			}
 		}
 	}
 }

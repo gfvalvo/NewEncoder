@@ -21,6 +21,8 @@ public:
 	int16_t getValue();
 	int16_t operator =(int16_t val);
 	operator int16_t() const;
+	bool upClick();
+	bool downClick();
 
 private:
 	void pinChangeHandler(uint8_t index);
@@ -38,6 +40,8 @@ private:
 	volatile IO_REG_TYPE * _bPin_register;
 	volatile IO_REG_TYPE _aPin_bitmask;
 	volatile IO_REG_TYPE _bPin_bitmask;
+	volatile bool clickUp = false;
+	volatile bool clickDown = false;
 
 	static uint8_t _numEncoders;
 	static const uint8_t _stateMask = 0b00000111;
