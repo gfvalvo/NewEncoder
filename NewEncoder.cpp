@@ -15,8 +15,7 @@ const uint8_t NewEncoder::_transistionTable[][4] = {
 		{ _startState, _startState, _startState, _startState } // illegal state should never be in it
 };
 
-uint8_t NewEncoder::_numEncoders = 0;
-NewEncoder *NewEncoder::_encoderTable[_maxNumEncoders];
+isrInfo NewEncoder::_isrTable[CORE_NUM_INTERRUPT];
 
 NewEncoder::NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue,
 		int16_t maxValue, int16_t initalValue) {
@@ -38,6 +37,8 @@ NewEncoder::NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue,
 NewEncoder::NewEncoder() {
 	active = false;
 	configured = false;
+	_aPin_register = nullptr;
+	_bPin_register = nullptr;
 }
 
 NewEncoder::~NewEncoder() {
@@ -45,35 +46,12 @@ NewEncoder::~NewEncoder() {
 }
 
 void NewEncoder::end() {
-	uint8_t encoderIndex;
-	configured = false;
 	if (!active) {
 		return;
 	}
 	active = false;
 	detachInterrupt(_interruptA);
 	detachInterrupt(_interruptB);
-	bool found = false;
-	for (encoderIndex = 0; encoderIndex < _numEncoders; encoderIndex++) {
-		if (_encoderTable[encoderIndex] == this) {
-			found = true;
-			break;
-		}
-	}
-	if (!found) {
-		return;
-	}
-	_numEncoders--;
-	if (_numEncoders == 0) {
-		return;
-	}
-	noInterrupts()
-	;
-	for (uint8_t j = encoderIndex; j < _numEncoders; j++) {
-		_encoderTable[j] = _encoderTable[j + 1];
-	}
-	interrupts()
-	;
 }
 
 void NewEncoder::configure(uint8_t aPin, uint8_t bPin, int16_t minValue,
@@ -117,16 +95,6 @@ bool NewEncoder::begin() {
 	if (_minValue >= _maxValue) {
 		return false;
 	}
-	if (_numEncoders >= _maxNumEncoders) {
-		return false;
-	}
-	if (_numEncoders == 0) {
-		for (uint8_t index = 0; index < _maxNumEncoders; index++) {
-			_encoderTable[index] = nullptr;
-		}
-	}
-
-	_encoderTable[_numEncoders++] = this;
 
 	pinMode(_aPin, INPUT_PULLUP);
 	pinMode(_bPin, INPUT_PULLUP);
@@ -143,8 +111,19 @@ bool NewEncoder::begin() {
 	}
 
 	active = true;
-	attachInterrupt(_interruptA, aPinIsr, CHANGE);
-	attachInterrupt(_interruptB, bPinIsr, CHANGE);
+
+	_isrTable[_interruptA].objectPtr = this;
+	_isrTable[_interruptA].functPtr = &NewEncoder::aPinChange;
+	if (!attachEncoderInterrupt(_interruptA)) {
+		return false;
+	}
+
+	_isrTable[_interruptB].objectPtr = this;
+	_isrTable[_interruptB].functPtr = &NewEncoder::bPinChange;
+	if (!attachEncoderInterrupt(_interruptB)) {
+		detachInterrupt(_interruptA);
+		return false;
+	}
 	return true;
 }
 
@@ -221,9 +200,9 @@ void NewEncoder::aPinChange() {
 	}
 	_aPinValue = newPinValue;
 	if (_aPinValue) {
-		pinChangeHandler (aPinRising);
+		pinChangeHandler(aPinRising);
 	} else {
-		pinChangeHandler (aPinFalling);
+		pinChangeHandler(aPinFalling);
 	}
 }
 
@@ -234,9 +213,9 @@ void NewEncoder::bPinChange() {
 	}
 	_bPinValue = newPinValue;
 	if (_bPinValue) {
-		pinChangeHandler (bPinRising);
+		pinChangeHandler(bPinRising);
 	} else {
-		pinChangeHandler (bPinFalling);
+		pinChangeHandler(bPinFalling);
 	}
 }
 
@@ -261,14 +240,186 @@ void NewEncoder::pinChangeHandler(uint8_t index) {
 	}
 }
 
-void NewEncoder::aPinIsr() {
-	for (uint8_t index = 0; index < _numEncoders; index++) {
-		_encoderTable[index]->aPinChange();
-	}
-}
+bool NewEncoder::attachEncoderInterrupt(uint8_t interruptNumber) {
+	switch (interruptNumber) {
+#if CORE_NUM_INTERRUPT > 0
+		case 0:
+			attachInterrupt(0, isr00, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 1
+		case 1:
+			attachInterrupt(1, isr01, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 2
+		case 2:
+			attachInterrupt(2, isr02, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 3
+		case 3:
+			attachInterrupt(3, isr03, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 4
+		case 4:
+			attachInterrupt(4, isr04, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 5
+		case 5:
+			attachInterrupt(5, isr05, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 6
+		case 6:
+			attachInterrupt(6, isr06, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 7
+		case 7:
+			attachInterrupt(7, isr07, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 8
+		case 8:
+			attachInterrupt(8, isr08, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 9
+		case 9:
+			attachInterrupt(9, isr09, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 10
+		case 10:
+			attachInterrupt(10, isr10, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 11
+		case 11:
+			attachInterrupt(11, isr11, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 12
+		case 12:
+			attachInterrupt(12, isr12, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 13
+		case 13:
+			attachInterrupt(13, isr13, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 14
+		case 14:
+			attachInterrupt(14, isr14, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 15
+		case 15:
+			attachInterrupt(15, isr15, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 16
+		case 16:
+			attachInterrupt(16, isr16, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 17
+		case 17:
+			attachInterrupt(17, isr17, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 18
+		case 18:
+			attachInterrupt(18, isr18, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 19
+		case 19:
+			attachInterrupt(19, isr19, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 20
+		case 20:
+			attachInterrupt(20, isr20, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 21
+		case 21:
+			attachInterrupt(21, isr21, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 22
+		case 22:
+			attachInterrupt(22, isr22, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 23
+		case 23:
+			attachInterrupt(23, isr23, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 24
+		case 24:
+			attachInterrupt(24, isr24, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 25
+		case 25:
+			attachInterrupt(25, isr25, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 26
+		case 26:
+			attachInterrupt(26, isr26, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 27
+		case 27:
+			attachInterrupt(27, isr27, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 28
+		case 28:
+			attachInterrupt(28, isr28, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 29
+		case 29:
+			attachInterrupt(29, isr29, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 30
+		case 30:
+			attachInterrupt(30, isr30, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 31
+		case 31:
+			attachInterrupt(31, isr31, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 32
+		case 32:
+			attachInterrupt(32, isr32, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 33
+		case 33:
+			attachInterrupt(33, isr33, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 34
+			case 34:
+			attachInterrupt(34, isr34, CHANGE);
+			break;
+#endif
 
-void NewEncoder::bPinIsr() {
-	for (uint8_t index = 0; index < _numEncoders; index++) {
-		_encoderTable[index]->bPinChange();
+		default:
+			return false;
 	}
+	return true;
 }
