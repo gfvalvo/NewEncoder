@@ -417,6 +417,131 @@ bool NewEncoder::attachEncoderInterrupt(uint8_t interruptNumber) {
 			attachInterrupt(34, isr34, CHANGE);
 			break;
 #endif
+#if CORE_NUM_INTERRUPT > 35
+			case 35:
+			attachInterrupt(35, isr35, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 36
+			case 36:
+			attachInterrupt(36, isr36, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 37
+			case 37:
+			attachInterrupt(37, isr37, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 38
+			case 38:
+			attachInterrupt(38, isr38, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 39
+			case 39:
+			attachInterrupt(39, isr39, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 40
+			case 40:
+			attachInterrupt(40, isr40, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 41
+			case 41:
+			attachInterrupt(41, isr41, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 42
+			case 42:
+			attachInterrupt(42, isr42, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 43
+			case 43:
+			attachInterrupt(43, isr43, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 44
+			case 44:
+			attachInterrupt(44, isr44, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 45
+			case 45:
+			attachInterrupt(45, isr45, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 46
+			case 46:
+			attachInterrupt(46, isr46, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 47
+			case 47:
+			attachInterrupt(47, isr47, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 48
+			case 48:
+			attachInterrupt(48, isr48, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 49
+			case 49:
+			attachInterrupt(49, isr49, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 50
+			case 50:
+			attachInterrupt(50, isr50, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 51
+			case 51:
+			attachInterrupt(51, isr51, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 52
+			case 52:
+			attachInterrupt(52, isr52, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 53
+			case 53:
+			attachInterrupt(53, isr53, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 54
+			case 54:
+			attachInterrupt(54, isr54, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 55
+			case 55:
+			attachInterrupt(55, isr55, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 56
+			case 56:
+			attachInterrupt(56, isr56, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 57
+			case 57:
+			attachInterrupt(57, isr57, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 58
+			case 58:
+			attachInterrupt(58, isr58, CHANGE);
+			break;
+#endif
+#if CORE_NUM_INTERRUPT > 59
+			case 59:
+			attachInterrupt(59, isr59, CHANGE);
+			break;
+#endif
 
 		default:
 			return false;
