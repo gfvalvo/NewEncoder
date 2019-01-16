@@ -1,5 +1,5 @@
 # NewEncoder
-Interrupt-driven rotary encoder library. Specifically designed for encoders that complete a fully quadrature cycle between successive detents. For example, [this one from Adafruit](https://www.adafruit.com/product/377). Some other libraries record multiple steps per detent with this type of encoder.
+Interrupt-driven rotary encoder library. Specifically designed for encoders that complete a fully quadrature cycle between successive detents. For example, [this one from Adafruit](https://www.adafruit.com/product/377). Some other libraries record multiple steps per detent with this type of encoder. This library also suppresses reaction contact bounce.
 
 Two interrupt-capable pins are required for each encoder connected. Thus, only one encoder can be used with an Arduino Uno for example.
 
@@ -27,6 +27,7 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
 
     void configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue);
 **Arguments:** Same as Constructor
+**Returns:**    Nothing
 
  ***Start an encoder object*** 
  
@@ -91,3 +92,4 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
 ## Credits:
 The **direct_pin_read.h** and **interrupt_pins.h** header files were "borrowed" directly from the [PRJC Encoder Library](https://www.pjrc.com/teensy/td_libs_Encoder.html) Copyright (c)  PJRC.COM, LLC - Paul Stoffregen. All typical license verbiage applies.
 
+Other concepts were inspired by http://www.buxtronix.net/2011/10/rotary-encoders-done-properly.html
