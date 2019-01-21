@@ -9,6 +9,7 @@
 #include "utility\direct_pin_read.h"
 
 #define FULL_PULSE 0
+#define HALF_PULSE 1
 
 class NewEncoder;
 typedef void (NewEncoder::*PinChangeFunction)();
@@ -59,22 +60,25 @@ private:
 	volatile bool clickUp = false;
 	volatile bool clickDown = false;
 
-	static const uint8_t _stateMask = 0b00000111;
-	static const uint8_t _deltaMask = 0b00011000;
-	static const uint8_t _incrementDelta = 0b00001000;
-	static const uint8_t _decrementDelta = 0b00010000;
-	static const uint8_t _startState = 0b011;
-	static const uint8_t _cwState1 = 0b010;
-	static const uint8_t _cwState2 = 0b000;
-	static const uint8_t _cwState3 = 0b001;
-	static const uint8_t _ccwState1 = 0b101;
-	static const uint8_t _ccwState2 = 0b100;
-	static const uint8_t _ccwState3 = 0b110;
-	static const encoderStateTransition _transistionTableType0[];
-	static const uint8_t aPinFalling = 0b00;
-	static const uint8_t aPinRising = 0b01;
-	static const uint8_t bPinFalling = 0b10;
-	static const uint8_t bPinRising = 0b11;
+	//static const uint8_t STATE_MASK = 0b00000111;
+	//static const uint8_t DELTA_MASK = 0b00011000;
+	//static const uint8_t INCREMENT_DELTA = 0b00001000;
+	//static const uint8_t DECREMENT_DELTA = 0b00010000;
+	//static const uint8_t START_STATE = 0b011;
+	//static const uint8_t CW_STATE_1 = 0b010;
+	//static const uint8_t CW_STATE_2 = 0b000;
+	//static const uint8_t CW_STATE_3 = 0b001;
+	//static const uint8_t CCW_STATE_1 = 0b101;
+	//static const uint8_t CCW_STATE_2 = 0b100;
+	//static const uint8_t CCW_STATE_3 = 0b110;
+
+	static const encoderStateTransition fullPulseTransitionTable[];
+	static const encoderStateTransition halfPulseTransitionTable[];
+
+	//static const uint8_t A_PIN_FALLING = 0b00;
+	//static const uint8_t A_PIN_RISING = 0b01;
+	//static const uint8_t B_PIN_FALLING = 0b10;
+	//static const uint8_t B_PIN_RISING = 0b11;
 	static isrInfo _isrTable[CORE_NUM_INTERRUPT];
 
 	static bool attachEncoderInterrupt(uint8_t interruptNumber);

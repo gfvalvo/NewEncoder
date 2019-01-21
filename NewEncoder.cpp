@@ -4,21 +4,64 @@
 
 #include "NewEncoder.h"
 
-const encoderStateTransition NewEncoder::_transistionTableType0[] = {
-		{ _cwState2, _cwState3, _cwState2, _cwState1 }, // cwState2 = 0b000
-		{ _cwState2, _cwState3, _cwState3, _startState | _incrementDelta }, // cwState3 = 0b001
-		{ _cwState1, _startState, _cwState2, _cwState1 },  // cwState1 = 0b010
-		{ _cwState1, _startState, _ccwState1, _startState }, // startState = 0b011
-		{ _ccwState2, _ccwState1, _ccwState2, _ccwState3 }, // ccwState2 = 0b100
-		{ _ccwState2, _ccwState1, _ccwState1, _startState }, // ccwState1 = 0b101
-		{ _ccwState3, _startState | _decrementDelta, _ccwState2, _ccwState3 }, // ccwState3 = 0b110
-		{ _startState, _startState, _startState, _startState } // illegal state should never be in it
+#define STATE_MASK 0b00000111
+#define DELTA_MASK 0b00011000
+#define INCREMENT_DELTA 0b00001000
+#define DECREMENT_DELTA 0b00010000
+
+#define A_PIN_FALLING 0b00
+#define A_PIN_RISING 0b01
+#define B_PIN_FALLING 0b10
+#define B_PIN_FALLING 0b10
+#define B_PIN_RISING  0b11
+
+// Define states and transition table for "one pulse per detent" type encoder
+#define START_STATE 0b011
+#define CW_STATE_1 0b010
+#define CW_STATE_2 0b000
+#define CW_STATE_3 0b001
+#define CCW_STATE_1 0b101
+#define CCW_STATE_2 0b100
+#define CCW_STATE_3 0b110
+
+const encoderStateTransition NewEncoder::fullPulseTransitionTable[] = {
+		{ CW_STATE_2, CW_STATE_3, CW_STATE_2, CW_STATE_1 }, // cwState2 = 0b000
+		{ CW_STATE_2, CW_STATE_3, CW_STATE_3, START_STATE | INCREMENT_DELTA }, // cwState3 = 0b001
+		{ CW_STATE_1, START_STATE, CW_STATE_2, CW_STATE_1 },  // cwState1 = 0b010
+		{ CW_STATE_1, START_STATE, CCW_STATE_1, START_STATE }, // startState = 0b011
+		{ CCW_STATE_2, CCW_STATE_1, CCW_STATE_2, CCW_STATE_3 }, // ccwState2 = 0b100
+		{ CCW_STATE_2, CCW_STATE_1, CCW_STATE_1, START_STATE }, // ccwState1 = 0b101
+		{ CCW_STATE_3, START_STATE | DECREMENT_DELTA, CCW_STATE_2, CCW_STATE_3 }, // ccwState3 = 0b110
+		{ START_STATE, START_STATE, START_STATE, START_STATE } // 0b111 illegal state should never be in it
+};
+
+// Define states and transition table for "one pulse per two detents" type encoder
+#define DETENT_0 0b000
+#define DETENT_1 0b111
+#define DEBOUNCE_0 0b010
+#define DEBOUNCE_1 0b001
+#define DEBOUNCE_2 0b101
+#define DEBOUNCE_3 0b110
+
+const encoderStateTransition NewEncoder::halfPulseTransitionTable[] = {
+		{ DETENT_0, DEBOUNCE_1, DETENT_0, DEBOUNCE_0 },  // DETENT_0 0b000
+		{ DETENT_0, DEBOUNCE_1, DEBOUNCE_1, DETENT_1 | INCREMENT_DELTA }, // DEBOUNCE_1 0b001
+		{ DEBOUNCE_0, DETENT_1 | DECREMENT_DELTA, DETENT_0, DEBOUNCE_0 },  // DEBOUNCE_0 0b010
+		{ DETENT_1, DETENT_1, DETENT_1, DETENT_1 },  // 0b011 - illegal state should never be in it
+		{ DETENT_0, DETENT_0, DETENT_0, DETENT_0 },  // 0b100 - illegal state should never be in it
+		{ DETENT_0 | DECREMENT_DELTA, DEBOUNCE_2, DEBOUNCE_2, DETENT_1 }, // DEBOUNCE_2 0b101
+		{ DEBOUNCE_3, DETENT_1, DETENT_0 | INCREMENT_DELTA, DEBOUNCE_3 },  // DEBOUNCE_3 0b110
+		{ DEBOUNCE_3, DETENT_1, DEBOUNCE_2, DETENT_1 }  // DETENT_1 0b111
 };
 
 isrInfo NewEncoder::_isrTable[CORE_NUM_INTERRUPT];
 
 NewEncoder::NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue,
 		int16_t maxValue, int16_t initalValue, uint8_t type) {
+	active = false;
+	configure(aPin, bPin, minValue, maxValue, initalValue, type);
+
+	/*--------------------------------------------------
 	_aPin = aPin;
 	_bPin = bPin;
 	_minValue = minValue;
@@ -33,8 +76,9 @@ NewEncoder::NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue,
 	active = false;
 	configured = true;
 	if (type == FULL_PULSE) {
-		tablePtr = _transistionTableType0;
+		tablePtr = fullPulseTransitionTable;
 	}
+	 --------------------------------------------------*/
 }
 
 NewEncoder::NewEncoder() {
@@ -73,6 +117,11 @@ void NewEncoder::configure(uint8_t aPin, uint8_t bPin, int16_t minValue,
 	_aPin_bitmask = PIN_TO_BITMASK(aPin);
 	_bPin_bitmask = PIN_TO_BITMASK(bPin);
 	_currentValue = initalValue;
+	if (type == HALF_PULSE) {
+		tablePtr = halfPulseTransitionTable;
+	} else {
+		tablePtr = fullPulseTransitionTable;
+	}
 	configured = true;
 }
 
@@ -105,6 +154,9 @@ bool NewEncoder::begin() {
 	_aPinValue = DIRECT_PIN_READ(_aPin_register, _aPin_bitmask);
 	_bPinValue = DIRECT_PIN_READ(_bPin_register, _bPin_bitmask);
 	_currentState = (_bPinValue << 1) | _aPinValue;
+	if ((tablePtr == halfPulseTransitionTable) && (_currentState == (DETENT_1 & 0b11))) {
+		_currentState = DETENT_1;
+	}
 
 	//_currentValue = (_minValue + _maxValue) / 2;
 	if (_currentValue > _maxValue) {
@@ -203,9 +255,9 @@ void NewEncoder::aPinChange() {
 	}
 	_aPinValue = newPinValue;
 	if (_aPinValue) {
-		pinChangeHandler(aPinRising);
+		pinChangeHandler(A_PIN_RISING);
 	} else {
-		pinChangeHandler(aPinFalling);
+		pinChangeHandler(A_PIN_FALLING);
 	}
 }
 
@@ -216,9 +268,9 @@ void NewEncoder::bPinChange() {
 	}
 	_bPinValue = newPinValue;
 	if (_bPinValue) {
-		pinChangeHandler(bPinRising);
+		pinChangeHandler(B_PIN_RISING);
 	} else {
-		pinChangeHandler(bPinFalling);
+		pinChangeHandler(B_PIN_FALLING);
 	}
 }
 
@@ -226,15 +278,15 @@ void NewEncoder::pinChangeHandler(uint8_t index) {
 	uint8_t newState;
 
 	newState = NewEncoder::tablePtr[_currentState][index];
-	_currentState = newState & _stateMask;
+	_currentState = newState & STATE_MASK;
 
-	if ((newState & _deltaMask) == _incrementDelta) {
+	if ((newState & DELTA_MASK) == INCREMENT_DELTA) {
 		clickUp = true;
 		clickDown = false;
 		if (_currentValue < _maxValue) {
 			_currentValue++;
 		}
-	} else if ((newState & _deltaMask) == _decrementDelta) {
+	} else if ((newState & DELTA_MASK) == DECREMENT_DELTA) {
 		clickUp = false;
 		clickDown = true;
 		if (_currentValue > _minValue) {
