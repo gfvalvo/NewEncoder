@@ -2,7 +2,8 @@
 #include "NewEncoder.h"
 
 // Adjust number of encoders and pin assignments for particular processor. These work for Teensy 3.2.
-NewEncoder encoders[] = { { 0, 1, -20, 20, 0 }, { 20, 21, 0, 50, 25 }, { 5, 6, -25, 0, -13 }, { 11, 12, -10, 25, 8 } };
+//NewEncoder encoders[] = { { 0, 1, -20, 20, 0 }, { 20, 21, 0, 50, 25 }, { 5, 6, -25, 0, -13 }, { 11, 12, -10, 25, 8 } };
+NewEncoder encoders[] = { { 2, 3, -50, 50, 0, FULL_PULSE }, { 4, 5, 0, 25, 0, FULL_PULSE } };
 const uint8_t numEncoders = sizeof(encoders) / sizeof(NewEncoder);
 int16_t prevEncoderValue[numEncoders];
 
