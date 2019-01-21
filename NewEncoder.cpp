@@ -4,7 +4,7 @@
 
 #include "NewEncoder.h"
 
-const uint8_t NewEncoder::_transistionTable[][4] = {
+const encoderStateTransition NewEncoder::_transistionTableType0[] = {
 		{ _cwState2, _cwState3, _cwState2, _cwState1 }, // cwState2 = 0b000
 		{ _cwState2, _cwState3, _cwState3, _startState | _incrementDelta }, // cwState3 = 0b001
 		{ _cwState1, _startState, _cwState2, _cwState1 },  // cwState1 = 0b010
@@ -18,7 +18,7 @@ const uint8_t NewEncoder::_transistionTable[][4] = {
 isrInfo NewEncoder::_isrTable[CORE_NUM_INTERRUPT];
 
 NewEncoder::NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue,
-		int16_t maxValue, int16_t initalValue) {
+		int16_t maxValue, int16_t initalValue, uint8_t type) {
 	_aPin = aPin;
 	_bPin = bPin;
 	_minValue = minValue;
@@ -32,6 +32,9 @@ NewEncoder::NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue,
 	_currentValue = initalValue;
 	active = false;
 	configured = true;
+	if (type == FULL_PULSE) {
+		tablePtr = _transistionTableType0;
+	}
 }
 
 NewEncoder::NewEncoder() {
@@ -55,7 +58,7 @@ void NewEncoder::end() {
 }
 
 void NewEncoder::configure(uint8_t aPin, uint8_t bPin, int16_t minValue,
-		int16_t maxValue, int16_t initalValue) {
+		int16_t maxValue, int16_t initalValue, uint8_t type) {
 	if (active) {
 		end();
 	}
@@ -222,7 +225,7 @@ void NewEncoder::bPinChange() {
 void NewEncoder::pinChangeHandler(uint8_t index) {
 	uint8_t newState;
 
-	newState = NewEncoder::_transistionTable[_currentState][index];
+	newState = NewEncoder::tablePtr[_currentState][index];
 	_currentState = newState & _stateMask;
 
 	if ((newState & _deltaMask) == _incrementDelta) {

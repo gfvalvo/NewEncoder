@@ -8,6 +8,8 @@
 #include "utility\interrupt_pins.h"
 #include "utility\direct_pin_read.h"
 
+#define FULL_PULSE 0
+
 class NewEncoder;
 typedef void (NewEncoder::*PinChangeFunction)();
 struct isrInfo {
@@ -15,15 +17,19 @@ struct isrInfo {
 	PinChangeFunction functPtr;
 };
 
+typedef uint8_t encoderStateTransition[4];
+
 #define CALL_MEMBER_FN(objectPtr, functPtr) ((objectPtr)->*(functPtr))()
 
 class NewEncoder {
 public:
-	NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue);
+	NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type =
+			FULL_PULSE);
 	NewEncoder();
 	~NewEncoder();
 	bool begin();
-	void configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue);
+	void configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type =
+			FULL_PULSE);
 	void end();
 	bool enabled();
 	int16_t setValue(int16_t);
@@ -42,6 +48,7 @@ private:
 	uint8_t _aPin = 0, _bPin = 0;
 	volatile int16_t _minValue = 0, _maxValue = 0;
 	int16_t _interruptA = -1, _interruptB = -1;
+	const encoderStateTransition *tablePtr = nullptr;
 	volatile uint8_t _aPinValue, _bPinValue;
 	volatile uint8_t _currentState;
 	volatile int16_t _currentValue;
@@ -63,7 +70,7 @@ private:
 	static const uint8_t _ccwState1 = 0b101;
 	static const uint8_t _ccwState2 = 0b100;
 	static const uint8_t _ccwState3 = 0b110;
-	static const uint8_t _transistionTable[][4];
+	static const encoderStateTransition _transistionTableType0[];
 	static const uint8_t aPinFalling = 0b00;
 	static const uint8_t aPinRising = 0b01;
 	static const uint8_t bPinFalling = 0b10;
