@@ -1,5 +1,5 @@
 # NewEncoder
-Interrupt-driven rotary encoder library. Works with both encoders that produce one complete quadrature cycle between successive detents (such as [this Bourns one sold by Adafruit](https://www.adafruit.com/product/377)) and those that produce one complete quadrature cycle for every two detents (such as[this Alps one sold by Mouser](https://www.mouser.com/ProductDetail/alps/ec11e15244g1/?qs=YMSFtX0bdJDiV4LBO61anw==&countrycode=US&currencycode=USD)).
+Interrupt-driven rotary encoder library. Works with both encoders that produce one complete quadrature cycle between successive detents (such as [this Bourns one sold by Adafruit](https://www.adafruit.com/product/377)) and those that produce one complete quadrature cycle for every two detents (such as [this Alps one sold by Mouser](https://www.mouser.com/ProductDetail/alps/ec11e15244g1/?qs=YMSFtX0bdJDiV4LBO61anw==&countrycode=US&currencycode=USD)).
 
 The encoder's switches are debounced using a state table approach.
 
@@ -75,7 +75,7 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
   **Arguments:**
    - **int16_t val** - New encoder value. If required, it is constrained to be between **minValue** and **maxValue**.
   
-  **Returns:**    Value actually, as int16_t (may be ignored)
+  **Returns:**    Value actually set, as int16_t (may be ignored)
    
    Note: The library overrides the ***assignment operator***. So, if ***myEncoder*** is an encoder object, the following two statements are equivalent:
    
@@ -88,7 +88,7 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
     bool downClick();
   **Arguments:** None
   
-  **Returns:**  True if the encoder has been rotated at least onc quadrature cycle  in  either direction, false otherwise.
+  **Returns:**  True if the encoder has been rotated at least one quadrature cycle  in  either direction, false otherwise.
   
    Note: Each call clears its internal flag. So, function will not return true again unless another quadrature cycle is executed. Also, the functions will return true even if the encoder's value is saturated at the lower or upper limit.
     
