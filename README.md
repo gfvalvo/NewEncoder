@@ -1,7 +1,7 @@
 # NewEncoder
-Interrupt-driven rotary encoder library. Works with both encoders that produce one complete quadrature cycle between successive detents (such as [this Bourns one sold by Adafruit](https://www.adafruit.com/product/377)) and those that produce one complete quadrature cycle for every two detents (such as [this Alps one sold by Mouser](https://www.mouser.com/ProductDetail/alps/ec11e15244g1/?qs=YMSFtX0bdJDiV4LBO61anw==&countrycode=US&currencycode=USD)).
+Interrupt-driven rotary encoder library. Works both with encoders that produce one complete quadrature cycle every detent (such as [this Bourns unit sold by Adafruit](https://www.adafruit.com/product/377)) and those that produce one complete quadrature cycle for every two detents (such as [this Alps unit sold by Mouser](https://www.mouser.com/ProductDetail/alps/ec11e15244g1/?qs=YMSFtX0bdJDiV4LBO61anw==&countrycode=US&currencycode=USD)).
 
-The encoder's switches are debounced using a state table approach.
+The encoders' switches are debounced using a state table approach.
 
 Two interrupt-capable pins are required for each encoder connected. Thus, only one encoder can be used with an Arduino Uno for example.
 
