@@ -165,8 +165,6 @@ bool NewEncoder::begin() {
 		_currentValue = _minValue;
 	}
 
-	active = true;
-
 	_isrTable[_interruptA].objectPtr = this;
 	_isrTable[_interruptA].functPtr = &NewEncoder::aPinChange;
 	if (!attachEncoderInterrupt(_interruptA)) {
@@ -179,6 +177,7 @@ bool NewEncoder::begin() {
 		detachInterrupt(_interruptA);
 		return false;
 	}
+	active = true;
 	return true;
 }
 

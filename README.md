@@ -1,5 +1,7 @@
 # NewEncoder
-Interrupt-driven rotary encoder library. Specifically designed for encoders that complete a fully quadrature cycle between successive detents. For example, [this one from Adafruit](https://www.adafruit.com/product/377). Some other libraries record multiple steps per detent with this type of encoder. This library also suppresses reaction contact bounce.
+Interrupt-driven rotary encoder library. Works with both encoders that produce one complete quadrature cycle between successive detents (such as [this Bourns one sold by Adafruit](https://www.adafruit.com/product/377)) and those that produce one complete quadrature cycle for every two detents (such as[this Alps one sold by Mouser](https://www.mouser.com/ProductDetail/alps/ec11e15244g1/?qs=YMSFtX0bdJDiV4LBO61anw==&countrycode=US&currencycode=USD)).
+
+The encoder's switches are debounced using a state table approach.
 
 Two interrupt-capable pins are required for each encoder connected. Thus, only one encoder can be used with an Arduino Uno for example.
 
@@ -10,13 +12,14 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
 #### Public NewEncoder Members Functions:
 ***Constructor - creates  and configures object***
 
-    NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue)
+    NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE)
 **Arguments:**
  - **uint8_t aPin** - Hardware pin connected to the encoder's "A" terminal.
  - **uint8_t bPin** - Hardware pin connected to the encoder's "B" terminal.
  - **int16_t minValue** - Lowest count value to be returned. Further anti-clockwise rotation produces no further change in output.
  - **int16_t maxValue** - Highest count value to be returned. Further clockwise rotation produces no further change in output.
  - **int16_t initalValue** - Initial encoder value. Should be between minValue and maxValue
+ - **uint8_t type** Type of encoder - FULL_PULSE (default, one quadrature pulse per detent) or HALF_PULSE (one quadrature pulse for every two detents)
  
  ***Constructor - only creates object*** 
 
@@ -25,7 +28,7 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
 
  ***Configure or Re-configure an encoder object*** 
 
-    void configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue);
+    void configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE);
 **Arguments:** Same as Constructor
 **Returns:**    Nothing
 
