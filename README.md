@@ -5,7 +5,7 @@ The encoders' switches are debounced using a state table approach.
 
 Two interrupt-capable pins are required for each encoder connected. Thus, only one encoder can be used with an Arduino Uno for example.
 
-The encoder's "A" and "B" terminals should be connected to the processor's inputs and its common terminal should be grounded. The library enables the processor's internal pull-ups, so external ones are not required.
+The encoders' "A" and "B" terminals should be connected to the processor's inputs and its common terminal should be grounded. The library enables the processor's internal pull-ups, so external ones are not required.
 ## Library Description:
 #### Class NewEncoder
 This provides interfacing to the encoder, interrupt handling, and rotation counting. One instance of this class is created for each encoder.
@@ -82,15 +82,15 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
     myEncoder.setValue(x);
     myEncoder = x;
     
-   ***Check if endocer has be rotated*** 
+   ***Check if endocer has been rotated*** 
    
     bool upClick();
     bool downClick();
   **Arguments:** None
   
-  **Returns:**  True if the encoder has been rotated at least one quadrature cycle  in  either direction, false otherwise.
+  **Returns:**  One of these methods will return true if the encoder has been rotated at least one detent in the associated directon (upClick() for CW, downClick() for CCW). False otherwise.
   
-   Note: Each call clears its internal flag. So, function will not return true again unless another quadrature cycle is executed. Also, the functions will return true even if the encoder's value is saturated at the lower or upper limit.
+   Note: Each call clears its internal flag. So, function will not return true again until another full-detent rotation has ocurred. Also, the functions will return true even if the encoder's value is saturated at the lower or upper limit.
     
 ## Credits:
 The **direct_pin_read.h** and **interrupt_pins.h** header files were "borrowed" directly from the [PRJC Encoder Library](https://www.pjrc.com/teensy/td_libs_Encoder.html) Copyright (c)  PJRC.COM, LLC - Paul Stoffregen. All typical license verbiage applies.

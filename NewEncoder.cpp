@@ -158,7 +158,6 @@ bool NewEncoder::begin() {
 		_currentState = DETENT_1;
 	}
 
-	//_currentValue = (_minValue + _maxValue) / 2;
 	if (_currentValue > _maxValue) {
 		_currentValue = _maxValue;
 	} else if (_currentValue < _minValue) {
@@ -253,11 +252,14 @@ void NewEncoder::aPinChange() {
 		return;
 	}
 	_aPinValue = newPinValue;
+	pinChangeHandler(0b00 | _aPinValue);  // Falling aPin == 0b00, Rising aPin = 0b01;
+	/*-----------
 	if (_aPinValue) {
 		pinChangeHandler(A_PIN_RISING);
 	} else {
 		pinChangeHandler(A_PIN_FALLING);
 	}
+	 -----------*/
 }
 
 void NewEncoder::bPinChange() {
@@ -266,11 +268,14 @@ void NewEncoder::bPinChange() {
 		return;
 	}
 	_bPinValue = newPinValue;
+	pinChangeHandler(0b10 | _bPinValue);  // Falling bPin == 0b10, Rising bPin = 0b11;
+	/*-----------
 	if (_bPinValue) {
 		pinChangeHandler(B_PIN_RISING);
 	} else {
 		pinChangeHandler(B_PIN_FALLING);
 	}
+	 -----------*/
 }
 
 void NewEncoder::pinChangeHandler(uint8_t index) {

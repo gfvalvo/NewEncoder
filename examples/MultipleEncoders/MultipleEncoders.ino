@@ -1,9 +1,16 @@
 #include "Arduino.h"
 #include "NewEncoder.h"
 
-// Adjust number of encoders and pin assignments for particular processor. These work for Teensy 3.2.
-//NewEncoder encoders[] = { { 0, 1, -20, 20, 0 }, { 20, 21, 0, 50, 25 }, { 5, 6, -25, 0, -13 }, { 11, 12, -10, 25, 8 } };
-NewEncoder encoders[] = { { 2, 3, -50, 50, 0, FULL_PULSE }, { 4, 5, 0, 25, 0, FULL_PULSE } };
+// Adjust number of encoders and pin assignments for particular processor. These work for Teensy 3.2. See README for meaning of constructor arguments.
+// Use FULL_PULSE for encoders that produce one complete quadrature pulse per detnet, such as: https://www.adafruit.com/product/377
+// Use HALF_PULSE for endoders that produce one complete quadrature pulse for every two detents, such as: https://www.adafruit.com/product/377
+NewEncoder encoders[] = {
+		{ 0, 1, -20, 20, 0, FULL_PULSE },
+		{ 20, 21, 0, 50, 25, FULL_PULSE },
+		{ 5, 6, -25, 0, -13, FULL_PULSE },
+		{ 11, 12, -10, 25, 8, FULL_PULSE }
+};
+
 const uint8_t numEncoders = sizeof(encoders) / sizeof(NewEncoder);
 int16_t prevEncoderValue[numEncoders];
 
