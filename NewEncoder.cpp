@@ -60,25 +60,6 @@ NewEncoder::NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue,
 		int16_t maxValue, int16_t initalValue, uint8_t type) {
 	active = false;
 	configure(aPin, bPin, minValue, maxValue, initalValue, type);
-
-	/*--------------------------------------------------
-	_aPin = aPin;
-	_bPin = bPin;
-	_minValue = minValue;
-	_maxValue = maxValue;
-	_interruptA = digitalPinToInterrupt(_aPin);
-	_interruptB = digitalPinToInterrupt(_bPin);
-	_aPin_register = PIN_TO_BASEREG(aPin);
-	_bPin_register = PIN_TO_BASEREG(bPin);
-	_aPin_bitmask = PIN_TO_BITMASK(aPin);
-	_bPin_bitmask = PIN_TO_BITMASK(bPin);
-	_currentValue = initalValue;
-	active = false;
-	configured = true;
-	if (type == FULL_PULSE) {
-		tablePtr = fullPulseTransitionTable;
-	}
-	 --------------------------------------------------*/
 }
 
 NewEncoder::NewEncoder() {
@@ -97,12 +78,16 @@ void NewEncoder::end() {
 		return;
 	}
 	active = false;
+
+	int16_t _interruptA = digitalPinToInterrupt(_aPin);
+	int16_t _interruptB = digitalPinToInterrupt(_bPin);
 	detachInterrupt(_interruptA);
 	detachInterrupt(_interruptB);
 }
 
 void NewEncoder::configure(uint8_t aPin, uint8_t bPin, int16_t minValue,
 		int16_t maxValue, int16_t initalValue, uint8_t type) {
+
 	if (active) {
 		end();
 	}
@@ -110,13 +95,19 @@ void NewEncoder::configure(uint8_t aPin, uint8_t bPin, int16_t minValue,
 	_bPin = bPin;
 	_minValue = minValue;
 	_maxValue = maxValue;
-	_interruptA = digitalPinToInterrupt(_aPin);
-	_interruptB = digitalPinToInterrupt(_bPin);
 	_aPin_register = PIN_TO_BASEREG(aPin);
 	_bPin_register = PIN_TO_BASEREG(bPin);
 	_aPin_bitmask = PIN_TO_BITMASK(aPin);
 	_bPin_bitmask = PIN_TO_BITMASK(bPin);
-	_currentValue = initalValue;
+
+	if (initalValue > _maxValue) {
+		_currentValue = _maxValue;
+	} else if (initalValue < _minValue) {
+		_currentValue = _minValue;
+	} else {
+		_currentValue = initalValue;
+	}
+
 	if (type == HALF_PULSE) {
 		tablePtr = halfPulseTransitionTable;
 	} else {
@@ -135,6 +126,10 @@ bool NewEncoder::begin() {
 	if (_aPin == _bPin) {
 		return false;
 	}
+
+	int16_t _interruptA = digitalPinToInterrupt(_aPin);
+	int16_t _interruptB = digitalPinToInterrupt(_bPin);
+
 	if (_interruptA == _interruptB) {
 		return false;
 	}
@@ -156,12 +151,6 @@ bool NewEncoder::begin() {
 	_currentState = (_bPinValue << 1) | _aPinValue;
 	if ((tablePtr == halfPulseTransitionTable) && (_currentState == (DETENT_1 & 0b11))) {
 		_currentState = DETENT_1;
-	}
-
-	if (_currentValue > _maxValue) {
-		_currentValue = _maxValue;
-	} else if (_currentValue < _minValue) {
-		_currentValue = _minValue;
 	}
 
 	_isrTable[_interruptA].objectPtr = this;
@@ -228,6 +217,22 @@ NewEncoder::operator int16_t() const {
 #endif
 }
 
+int16_t NewEncoder::getAndSet(int16_t val) {
+	int16_t localCurrentValue;
+	if (val < _minValue) {
+		val = _minValue;
+	} else if (val > _maxValue) {
+		val = _maxValue;
+	}
+	noInterrupts()
+	;
+	localCurrentValue = _currentValue;
+	_currentValue = val;
+	interrupts()
+	;
+	return localCurrentValue;
+}
+
 bool NewEncoder::upClick() {
 	if (clickUp) {
 		clickUp = false;
@@ -253,13 +258,6 @@ void NewEncoder::aPinChange() {
 	}
 	_aPinValue = newPinValue;
 	pinChangeHandler(0b00 | _aPinValue);  // Falling aPin == 0b00, Rising aPin = 0b01;
-	/*-----------
-	if (_aPinValue) {
-		pinChangeHandler(A_PIN_RISING);
-	} else {
-		pinChangeHandler(A_PIN_FALLING);
-	}
-	 -----------*/
 }
 
 void NewEncoder::bPinChange() {
@@ -269,13 +267,6 @@ void NewEncoder::bPinChange() {
 	}
 	_bPinValue = newPinValue;
 	pinChangeHandler(0b10 | _bPinValue);  // Falling bPin == 0b10, Rising bPin = 0b11;
-	/*-----------
-	if (_bPinValue) {
-		pinChangeHandler(B_PIN_RISING);
-	} else {
-		pinChangeHandler(B_PIN_FALLING);
-	}
-	 -----------*/
 }
 
 void NewEncoder::pinChangeHandler(uint8_t index) {

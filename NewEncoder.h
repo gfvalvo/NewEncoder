@@ -36,6 +36,7 @@ public:
 	int16_t setValue(int16_t);
 	int16_t getValue();
 	int16_t operator=(int16_t val);
+	int16_t getAndSet(int16_t val = 0);
 	operator int16_t() const;
 	bool upClick();
 	bool downClick();
@@ -48,7 +49,7 @@ private:
 	bool configured = false;
 	uint8_t _aPin = 0, _bPin = 0;
 	volatile int16_t _minValue = 0, _maxValue = 0;
-	int16_t _interruptA = -1, _interruptB = -1;
+	//int16_t _interruptA = -1, _interruptB = -1;
 	const encoderStateTransition *tablePtr = nullptr;
 	volatile uint8_t _aPinValue, _bPinValue;
 	volatile uint8_t _currentState;
@@ -60,25 +61,9 @@ private:
 	volatile bool clickUp = false;
 	volatile bool clickDown = false;
 
-	//static const uint8_t STATE_MASK = 0b00000111;
-	//static const uint8_t DELTA_MASK = 0b00011000;
-	//static const uint8_t INCREMENT_DELTA = 0b00001000;
-	//static const uint8_t DECREMENT_DELTA = 0b00010000;
-	//static const uint8_t START_STATE = 0b011;
-	//static const uint8_t CW_STATE_1 = 0b010;
-	//static const uint8_t CW_STATE_2 = 0b000;
-	//static const uint8_t CW_STATE_3 = 0b001;
-	//static const uint8_t CCW_STATE_1 = 0b101;
-	//static const uint8_t CCW_STATE_2 = 0b100;
-	//static const uint8_t CCW_STATE_3 = 0b110;
-
 	static const encoderStateTransition fullPulseTransitionTable[];
 	static const encoderStateTransition halfPulseTransitionTable[];
 
-	//static const uint8_t A_PIN_FALLING = 0b00;
-	//static const uint8_t A_PIN_RISING = 0b01;
-	//static const uint8_t B_PIN_FALLING = 0b10;
-	//static const uint8_t B_PIN_RISING = 0b11;
 	static isrInfo _isrTable[CORE_NUM_INTERRUPT];
 
 	static bool attachEncoderInterrupt(uint8_t interruptNumber);

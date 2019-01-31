@@ -81,7 +81,17 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
    
     myEncoder.setValue(x);
     myEncoder = x;
-    
+
+   ***Get current encoder value and set to new value***
+   
+    int16_t getAndSet(int16_t val);
+**Arguments:**
+   - **int16_t val** - New encoder value. If required, it is constrained to be between **minValue** and **maxValue**.
+  
+   **Returns:**    Value of encoder before being set. 
+   
+   Note: This function reads the current encoder value and then sets the new value in an atomic manner. No counts will be missed as an interrupt can not occur between the  reading and setting. Useful for periodically reading encoder attached to spinning motor to determine rotation speed.
+  
    ***Check if endocer has been rotated*** 
    
     bool upClick();
