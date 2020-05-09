@@ -5,8 +5,8 @@
 #define NEWENCODER_H_
 
 #include <Arduino.h>
-#include "utility\interrupt_pins.h"
-#include "utility\direct_pin_read.h"
+#include "utility/interrupt_pins.h"
+#include "utility/direct_pin_read.h"
 
 #define FULL_PULSE 0
 #define HALF_PULSE 1
