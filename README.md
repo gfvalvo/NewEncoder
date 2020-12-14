@@ -92,7 +92,7 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
    
    Note: This function reads the current encoder value and then sets the new value in an atomic manner. No counts will be missed as an interrupt can not occur between the  reading and setting. Useful for periodically reading encoder attached to spinning motor to determine rotation speed.
   
-   ***Check if endocer has been rotated*** 
+   ***Check if encoder has been rotated*** 
    
     bool upClick();
     bool downClick();
