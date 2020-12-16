@@ -101,6 +101,16 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
   **Returns:**  One of these methods will return true if the encoder has been rotated at least one detent in the associated directon (upClick() for CW, downClick() for CCW). False otherwise.
   
    Note: Each call clears its internal flag. So, function will not return true again until another full-detent rotation has ocurred. Also, the functions will return true even if the encoder's value is saturated at the lower or upper limit.
+   
+   ***Attach Callback function to be invoked when encoder is rotated***
+      
+    void attachCallback(void (*callBack)(NewEncoder &));
+  **Arguments:**
+     - ** void (*callBack)(NewEncoder &)** - pointer to the callback function. This function must accept a Reference to NewEncoder object as its argument and returns nothing.
+     
+  **Returns:**    Nothing
+  
+   The callback function will be invoke anytime the encoder is rotated. Its argument will be a reference to the encoder. Note: The callback function is called from an ISR. So, it must use ISR-safe coding techniques.
     
 ## Credits:
 The **direct_pin_read.h** and **interrupt_pins.h** header files were "borrowed" directly from the [PRJC Encoder Library](https://www.pjrc.com/teensy/td_libs_Encoder.html) Copyright (c)  PJRC.COM, LLC - Paul Stoffregen. All typical license verbiage applies.
