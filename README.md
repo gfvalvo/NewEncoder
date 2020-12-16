@@ -106,7 +106,7 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
       
     void attachCallback(void (*callBack)(NewEncoder &));
   **Arguments:**
-     - ** void (*callBack)(NewEncoder &)** - pointer to the callback function. This function must accept a Reference to NewEncoder object as its argument and returns nothing.
+     - **void (*callBack)(NewEncoder &)** - pointer to the callback function. This function must accept a Reference to NewEncoder object as its argument and returns nothing.
      
   **Returns:**    Nothing
   
