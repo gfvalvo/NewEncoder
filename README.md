@@ -110,7 +110,7 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
      
   **Returns:**    Nothing
   
-   The callback function will be invoke anytime the encoder is rotated. Its argument will be a reference to the encoder. Note: The callback function is called from an ISR. So, it must use ISR-safe coding techniques.
+   The callback function will be invoke anytime the encoder is rotated. Its argument will be a reference to the encoder object itself. So, multiple encoders can be serviced by the same callback. Note: The callback function is called from an ISR. So, it must use ISR-safe coding techniques.
     
 ## Credits:
 The **direct_pin_read.h** and **interrupt_pins.h** header files were "borrowed" directly from the [PRJC Encoder Library](https://www.pjrc.com/teensy/td_libs_Encoder.html) Copyright (c)  PJRC.COM, LLC - Paul Stoffregen. All typical license verbiage applies.
