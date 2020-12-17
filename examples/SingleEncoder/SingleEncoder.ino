@@ -24,6 +24,7 @@ void setup() {
 
     Serial.println(F("Encoder Failed to Start. Check pin assignments and available interrupts. Aborting."));
     while (1) {
+       yield();
     }
   } else {
     value = encoder;
