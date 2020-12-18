@@ -29,8 +29,14 @@ void handleEncoder(void *pvParameters) {
   // Use FULL_PULSE for encoders that produce one complete quadrature pulse per detnet, such as: https://www.adafruit.com/product/377
   // Use HALF_PULSE for endoders that produce one complete quadrature pulse for every two detents, such as: https://www.adafruit.com/product/377
   NewEncoder *encoder1 = new NewEncoder(25, 26, -20, 20, 0, FULL_PULSE);
+  if (encoder1 == nullptr) {
+    Serial.println("Failed to allocate NewEncoder object. Aborting.");
+    vTaskDelete(nullptr);
+  }
+
   if (!encoder1->begin()) {
-    Serial.println(F("Encoder Failed to Start. Check pin assignments and available interrupts. Aborting."));
+    Serial.println("Encoder Failed to Start. Check pin assignments and available interrupts. Aborting.");
+    delete encoder1;
     vTaskDelete(nullptr);
   }
   Serial.print(F("Encoder Successfully Started at value = "));
