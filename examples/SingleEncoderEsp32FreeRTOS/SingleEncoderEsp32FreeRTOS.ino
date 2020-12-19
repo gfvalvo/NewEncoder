@@ -27,7 +27,7 @@ void handleEncoder(void *pvParameters) {
 
   // This example uses Pins 25 & 26 for Encoder. Specify correct pins for your ESP32 / Encoder setup. See README for meaning of constructor arguments.
   // Use FULL_PULSE for encoders that produce one complete quadrature pulse per detnet, such as: https://www.adafruit.com/product/377
-  // Use HALF_PULSE for endoders that produce one complete quadrature pulse for every two detents, such as: https://www.adafruit.com/product/377
+  // Use HALF_PULSE for endoders that produce one complete quadrature pulse for every two detents, such as: https://www.mouser.com/ProductDetail/alps/ec11e15244g1/?qs=YMSFtX0bdJDiV4LBO61anw==&countrycode=US&currencycode=USD
   NewEncoder *encoder1 = new NewEncoder(25, 26, -20, 20, 0, FULL_PULSE);
   if (encoder1 == nullptr) {
     Serial.println("Failed to allocate NewEncoder object. Aborting.");
