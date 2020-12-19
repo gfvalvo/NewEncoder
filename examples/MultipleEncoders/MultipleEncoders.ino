@@ -3,7 +3,7 @@
 
 // Adjust number of encoders and pin assignments for particular processor. These work for Teensy 3.2. See README for meaning of constructor arguments.
 // Use FULL_PULSE for encoders that produce one complete quadrature pulse per detnet, such as: https://www.adafruit.com/product/377
-// Use HALF_PULSE for endoders that produce one complete quadrature pulse for every two detents, such as: https://www.adafruit.com/product/377
+// Use HALF_PULSE for endoders that produce one complete quadrature pulse for every two detents, such as: https://www.mouser.com/ProductDetail/alps/ec11e15244g1/?qs=YMSFtX0bdJDiV4LBO61anw==&countrycode=US&currencycode=USD
 NewEncoder encoders[] = {
 		{ 0, 1, -20, 20, 0, FULL_PULSE },
 		{ 20, 21, 0, 50, 25, FULL_PULSE },
