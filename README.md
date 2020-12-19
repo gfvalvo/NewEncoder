@@ -108,9 +108,19 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
 **Arguments:**  
    - **void (\*callBack)(NewEncoder &)** - pointer to the callback function. This function must accept a Reference to a NewEncoder object as its argument and return nothing.
      
-  **Returns:**    Nothing
+**Returns:**    Nothing
   
    The callback function will be invoke anytime the encoder is rotated. Its argument will be a reference to the encoder object itself. So, multiple encoders can be serviced by the same callback. Note: The callback function is called from an ISR. So, it must use ISR-safe coding techniques.
+   
+   ***Customize increment/decrement and min/max behavior via inheritance***
+   
+   virtual void updateValue(uint8_t updatedState);
+   // This function may be implemented in an inherited class to customize the increment/decrement and min/max behavior.
+   // See the source code and CustomEncoder example
+**Arguments:**
+   - **int8_t updatedState** - New state of the encoder that includes the INCREMENT_DELTA and DECREMENT_DELTA bits
+   
+**Returns:**    Nothing
     
 ## Credits:
 The **direct_pin_read.h** and **interrupt_pins.h** header files were "borrowed" directly from the [PRJC Encoder Library](https://www.pjrc.com/teensy/td_libs_Encoder.html) Copyright (c)  PJRC.COM, LLC - Paul Stoffregen. All typical license verbiage applies.
