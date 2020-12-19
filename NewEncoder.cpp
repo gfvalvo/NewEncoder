@@ -4,11 +4,6 @@
 
 #include "NewEncoder.h"
 
-#define STATE_MASK 0b00000111
-#define DELTA_MASK 0b00011000
-#define INCREMENT_DELTA 0b00001000
-#define DECREMENT_DELTA 0b00010000
-
 #define A_PIN_FALLING 0b00
 #define A_PIN_RISING 0b01
 #define B_PIN_FALLING 0b10
@@ -278,24 +273,29 @@ void NewEncoder::pinChangeHandler(uint8_t index) {
 
 	newState = NewEncoder::tablePtr[_currentState][index];
 	_currentState = newState & STATE_MASK;
+	if ((newState & DELTA_MASK) != 0) {
+		if ((newState & DELTA_MASK) == INCREMENT_DELTA) {
+			clickUp = true;
+			clickDown = false;
+		} else {
+			clickUp = false;
+			clickDown = true;
+		}
+		updateValue(newState);
+		if (callBackPtr != nullptr) {
+			callBackPtr(*this);
+		}
+	}
+}
 
-	if ((newState & DELTA_MASK) == INCREMENT_DELTA) {
-		clickUp = true;
-		clickDown = false;
+void NewEncoder::updateValue(uint8_t updatedState) {
+	if ((updatedState & DELTA_MASK) == INCREMENT_DELTA) {
 		if (_currentValue < _maxValue) {
 			_currentValue++;
 		}
-		if(callBackPtr!=nullptr) {
-			callBackPtr(*this);
-		}
-	} else if ((newState & DELTA_MASK) == DECREMENT_DELTA) {
-		clickUp = false;
-		clickDown = true;
+	} else if ((updatedState & DELTA_MASK) == DECREMENT_DELTA) {
 		if (_currentValue > _minValue) {
 			_currentValue--;
-		}
-		if(callBackPtr!=nullptr) {
-			callBackPtr(*this);
 		}
 	}
 }

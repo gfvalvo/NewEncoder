@@ -10,6 +10,11 @@
 #define ESP_ISR
 #endif
 
+#define STATE_MASK 0b00000111
+#define DELTA_MASK 0b00011000
+#define INCREMENT_DELTA 0b00001000
+#define DECREMENT_DELTA 0b00010000
+
 #include <Arduino.h>
 #include "utility/interrupt_pins.h"
 #include "utility/direct_pin_read.h"
@@ -35,7 +40,7 @@ public:
 	NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type =
 	FULL_PULSE);
 	NewEncoder();
-	~NewEncoder();
+	virtual ~NewEncoder();
 	bool begin();
 	void configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type =
 	FULL_PULSE);
@@ -50,6 +55,11 @@ public:
 	bool downClick();
 	void attachCallback(EncoderCallBack ptr);
 
+protected:
+	virtual void updateValue(uint8_t updatedState);
+	volatile int16_t _minValue = 0, _maxValue = 0;
+	volatile int16_t _currentValue;
+
 private:
 	void pinChangeHandler(uint8_t index);
 	void aPinChange();
@@ -57,12 +67,10 @@ private:
 	bool active = false;
 	bool configured = false;
 	uint8_t _aPin = 0, _bPin = 0;
-	volatile int16_t _minValue = 0, _maxValue = 0;
 	//int16_t _interruptA = -1, _interruptB = -1;
 	const encoderStateTransition *tablePtr = nullptr;
 	volatile uint8_t _aPinValue, _bPinValue;
 	volatile uint8_t _currentState;
-	volatile int16_t _currentValue;
 	volatile IO_REG_TYPE * _aPin_register;
 	volatile IO_REG_TYPE * _bPin_register;
 	volatile IO_REG_TYPE _aPin_bitmask;
