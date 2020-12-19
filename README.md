@@ -114,9 +114,9 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
    
    ***Customize increment/decrement and min/max behavior via inheritance***
    
-   virtual void updateValue(uint8_t updatedState);
-   // This function may be implemented in an inherited class to customize the increment/decrement and min/max behavior.
-   // See the source code and CustomEncoder example
+    virtual void updateValue(uint8_t updatedState);
+    // This function may be implemented in an inherited class to customize the increment/decrement and min/max behavior.
+    // See the source code and CustomEncoder example
 **Arguments:**
    - **int8_t updatedState** - New state of the encoder that includes the INCREMENT_DELTA and DECREMENT_DELTA bits
    
