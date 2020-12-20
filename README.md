@@ -122,6 +122,17 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
    - **int8_t updatedState** - New state vector of the encoder that includes the INCREMENT_DELTA and DECREMENT_DELTA bits
    
 **Returns:**    Nothing
+
+   ***Change min, max, and current value***
+   
+    bool newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent);
+**Arguments:**
+   - **int16_t newMin** - New Minimum setting
+   - **int16_t newMax** - New Maximum setting
+   - **int16_t newCurrent** - New Encoder value
+   
+**Returns:**
+ - true if encoder object successfully started, false otherwise
     
 ## Credits:
 The **direct_pin_read.h** and **interrupt_pins.h** header files were "borrowed" directly from the [PRJC Encoder Library](https://www.pjrc.com/teensy/td_libs_Encoder.html) Copyright (c)  PJRC.COM, LLC - Paul Stoffregen. All typical license verbiage applies.
