@@ -54,6 +54,7 @@ public:
 	bool upClick();
 	bool downClick();
 	void attachCallback(EncoderCallBack ptr);
+	bool newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent);
 
 protected:
 	virtual void updateValue(uint8_t updatedState);

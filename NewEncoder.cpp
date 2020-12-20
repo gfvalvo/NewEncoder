@@ -250,6 +250,30 @@ void NewEncoder::attachCallback(EncoderCallBack ptr) {
 	callBackPtr = ptr;
 }
 
+bool NewEncoder::newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent) {
+	bool success = false;
+#if defined(__AVR__)
+	noInterrupts();  // 16-bit access not atomic on 8-bit processor
+#endif
+	if (active) {
+		if (newMax > newMin) {
+			if (newCurrent < newMin) {
+				newCurrent = newMin;
+			} else if (newCurrent > newMax) {
+				newCurrent = newMax;
+			}
+			_currentValue = newCurrent;
+			_minValue = newMin;
+			_maxValue = newMax;
+			success = true;
+		}
+	}
+#if defined(__AVR__)
+	interrupts();
+#endif
+	return success;
+}
+
 void NewEncoder::aPinChange() {
 	uint8_t newPinValue = DIRECT_PIN_READ(_aPin_register, _aPin_bitmask);
 	if (newPinValue == _aPinValue) {
