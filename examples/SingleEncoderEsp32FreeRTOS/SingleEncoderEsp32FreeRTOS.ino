@@ -9,8 +9,6 @@ void handleEncoder(void *pvParameters);
 void ESP_ISR callBack(NewEncoder &enc);
 QueueHandle_t encoderQueue;
 
-void ESP_ISR callBack(NewEncoder &enc);
-
 void setup() {
   Serial.begin(115200);
   delay(1000);
