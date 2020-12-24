@@ -8,7 +8,7 @@ class CustomEncoder : public NewEncoder {
   public:
     CustomEncoder() : NewEncoder() {}
     CustomEncoder(uint8_t aPin, uint8_t bPin, int16_t initalValue, uint8_t type = FULL_PULSE) :
-      NewEncoder(aPin, bPin, initalValue - 1, initalValue + 1, initalValue, type) {}
+      NewEncoder(aPin, bPin, INT16_MIN, INT16_MAX, initalValue, type) {}
     virtual ~CustomEncoder() {}
 
   protected:
