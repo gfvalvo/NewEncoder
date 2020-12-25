@@ -42,7 +42,7 @@ public:
 	NewEncoder();
 	virtual ~NewEncoder();
 	bool begin();
-	void configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type =
+	virtual void configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type =
 	FULL_PULSE);
 	void end();
 	bool enabled();
