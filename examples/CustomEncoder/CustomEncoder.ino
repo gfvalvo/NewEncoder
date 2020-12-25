@@ -10,10 +10,22 @@ class CustomEncoder : public NewEncoder {
     CustomEncoder(uint8_t aPin, uint8_t bPin, int16_t initalValue, uint8_t type = FULL_PULSE) :
       NewEncoder(aPin, bPin, INT16_MIN, INT16_MAX, initalValue, type) {}
     virtual ~CustomEncoder() {}
+    virtual void configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE);
+    void configure(uint8_t aPin, uint8_t bPin, int16_t initalValue, uint8_t type = FULL_PULSE);
 
   protected:
     virtual void updateValue(uint8_t updatedState);
 };
+
+void CustomEncoder::configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type) {
+  (void) minValue;
+  (void) maxValue;
+  configure(aPin, bPin, initalValue, type);
+}
+
+void CustomEncoder::configure(uint8_t aPin, uint8_t bPin, int16_t initalValue, uint8_t type) {
+  NewEncoder::configure(aPin, bPin, INT16_MIN, INT16_MAX, initalValue, type);
+}
 
 void CustomEncoder::updateValue(uint8_t updatedState) {
   if ((updatedState & DELTA_MASK) == INCREMENT_DELTA) {
