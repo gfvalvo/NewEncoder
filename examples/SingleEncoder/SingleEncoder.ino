@@ -1,9 +1,3 @@
-/*
-   SingleEncoder.cpp
-
-    Created on: Jul 25, 2018
-        Author: GFV
-*/
 #include "Arduino.h"
 #include "NewEncoder.h"
 
@@ -11,44 +5,50 @@
 // Use FULL_PULSE for encoders that produce one complete quadrature pulse per detnet, such as: https://www.adafruit.com/product/377
 // Use HALF_PULSE for endoders that produce one complete quadrature pulse for every two detents, such as: https://www.mouser.com/ProductDetail/alps/ec11e15244g1/?qs=YMSFtX0bdJDiV4LBO61anw==&countrycode=US&currencycode=USD
 NewEncoder encoder(2, 3, -20, 20, 0, FULL_PULSE);
-
 int16_t prevEncoderValue;
 
 void setup() {
-  int16_t value;
+  NewEncoder::EncoderState state;
 
   Serial.begin(115200);
   delay(2000);
-  Serial.println(F("Starting"));
-  if (!encoder.begin()) {
+  Serial.println("Starting");
 
-    Serial.println(F("Encoder Failed to Start. Check pin assignments and available interrupts. Aborting."));
+  if (!encoder.begin()) {
+    Serial.println("Encoder Failed to Start. Check pin assignments and available interrupts. Aborting.");
     while (1) {
-       yield();
+      yield();
     }
   } else {
-    value = encoder;
-    Serial.print(F("Encoder Successfully Started at value = "));
-    Serial.println(value);
+    encoder.getState(state);
+    Serial.print("Encoder Successfully Started at value = ");
+    prevEncoderValue = state.currentValue;
+    Serial.println(prevEncoderValue);
   }
 }
 
 void loop() {
   int16_t currentValue;
-  bool up, down;
+  NewEncoder::EncoderState currentEncoderState;
 
-  up = encoder.upClick();
-  down = encoder.downClick();
-  if (up || down) {
-    currentValue = encoder;
+  if (encoder.getState(currentEncoderState)) {
+    Serial.print("Encoder: ");
+    currentValue = currentEncoderState.currentValue;
     if (currentValue != prevEncoderValue) {
-      Serial.print(F("Encoder: "));
       Serial.println(currentValue);
       prevEncoderValue = currentValue;
-    } else if (up) {
-      Serial.println(F("Encoder at upper limit."));
-    } else {
-      Serial.println(F("Encoder at lower limit."));
-    }
+    } else
+      switch (currentEncoderState.currentClick) {
+        case NewEncoder::UpClick:
+          Serial.println("at upper limit.");
+          break;
+
+        case NewEncoder::DownClick:
+          Serial.println("at lower limit.");
+          break;
+
+        default:
+          break;
+      }
   }
 }
