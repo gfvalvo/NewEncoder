@@ -31,7 +31,7 @@ This struct datatype contains the current encoder value and click direction. Var
 
 **NOTES:**
 
-**1. This library is interrupt-safe for the single-core / single-thread platforms that make up the majority of the Arduino Ecosystem. It is also safe for the FreeRTOS / ESP32 platform if its functions are only called from a single core and single thread (task). A NewEncoderEsp32 library will soon be released that is multi-thread / multi-core safe.**
+**1. This library is interrupt-safe for the single-core / single-thread platforms that make up the majority of the Arduino Ecosystem. It is also safe for the FreeRTOS / ESP32 platform if its functions are only called from a single core and single thread (task). The SingleEncoderEsp32FreeRTOS example follows these guidelines. A NewEncoderEsp32 library will soon be released that is multi-thread / multi-core safe.**
 
 **2. If desired, the previous version of this library can be downloaded and used. However, it will no longer be supported / updated: [NewEncoder v1.4](https://github.com/gfvalvo/NewEncoder/releases/tag/v1.4)**
 
@@ -140,7 +140,7 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
  
  ****Returns:**** Nothing
  
- # DEPRECATED FUNCTIONS:
+ # DEPRECATED FUNCTIONS - THESE MAY BE DELETED FROM FUTURE RELEASES:
   ***Get current encoder value - DEPRECATED***
    
      int16_t getValue();
