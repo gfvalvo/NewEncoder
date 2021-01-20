@@ -96,12 +96,15 @@ void NewEncoder::configure(uint8_t aPin, uint8_t bPin, int16_t minValue,
 	_bPin_bitmask = PIN_TO_BITMASK(bPin);
 
 	if (initalValue > _maxValue) {
-		_currentValue = _maxValue;
+		initalValue = _maxValue;
 	} else if (initalValue < _minValue) {
-		_currentValue = _minValue;
-	} else {
-		_currentValue = initalValue;
+		initalValue = _minValue;
 	}
+
+	liveState.currentValue = initalValue;
+	liveState.currentClick = NoClick;
+	memcpy((void *) &localState, (void *) &liveState, sizeof(EncoderState));
+	stateChanged = false;
 
 	if (type == HALF_PULSE) {
 		tablePtr = halfPulseTransitionTable;
@@ -143,9 +146,9 @@ bool NewEncoder::begin() {
 	delay(2);  // Seems to help ensure first reading after pinMode is correct
 	_aPinValue = DIRECT_PIN_READ(_aPin_register, _aPin_bitmask);
 	_bPinValue = DIRECT_PIN_READ(_bPin_register, _bPin_bitmask);
-	_currentState = (_bPinValue << 1) | _aPinValue;
-	if ((tablePtr == halfPulseTransitionTable) && (_currentState == (DETENT_1 & 0b11))) {
-		_currentState = DETENT_1;
+	currentStateVariable = (_bPinValue << 1) | _aPinValue;
+	if ((tablePtr == halfPulseTransitionTable) && (currentStateVariable == (DETENT_1 & 0b11))) {
+		currentStateVariable = DETENT_1;
 	}
 
 	_isrTable[_interruptA].objectPtr = this;
@@ -164,8 +167,69 @@ bool NewEncoder::begin() {
 	return true;
 }
 
+bool NewEncoder::getState(EncoderState &state) {
+	bool localStateChanged = stateChanged;
+	if (localStateChanged) {
+		noInterrupts();
+		memcpy((void *) &localState, (void *) &liveState, sizeof(EncoderState));
+		stateChanged = false;
+		interrupts();
+	} else {
+		localState.currentClick = NoClick;
+	}
+	memcpy((void *) &state, (void *) &localState, sizeof(EncoderState));
+	return localStateChanged;
+}
+
+bool NewEncoder::getAndSet(int16_t val, EncoderState &Oldstate, EncoderState &Newstate) {
+	bool changed;
+	if (val < _minValue) {
+		val = _minValue;
+	} else if (val > _maxValue) {
+		val = _maxValue;
+	}
+	noInterrupts();
+	changed = stateChanged;
+	stateChanged = false;
+	memcpy((void *) &Oldstate, (void *) &liveState, sizeof(EncoderState));
+	if (!changed) {
+		Oldstate.currentClick = NoClick;
+	}
+	liveState.currentValue = val;
+	liveState.currentClick = NoClick;
+	memcpy((void *) &localState, (void *) &liveState, sizeof(EncoderState));
+	interrupts();
+	memcpy((void *) &Newstate, (void *) &localState, sizeof(EncoderState));
+	return changed;
+}
+
+bool NewEncoder::newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent, EncoderState &state) {
+	if (newMax <= newMin) {
+		return false;
+	}
+	if (newCurrent < newMin) {
+		newCurrent = newMin;
+	}
+	if (newCurrent > newMax) {
+		newCurrent = newMax;
+	}
+	noInterrupts();
+	stateChanged = false;
+	liveState.currentValue = newCurrent;
+	liveState.currentClick = NoClick;
+	memcpy((void *) &localState, (void *) &liveState, sizeof(EncoderState));
+	interrupts();
+	memcpy((void *) &state, (void *) &localState, sizeof(EncoderState));
+	return true;
+}
+
 bool NewEncoder::enabled() {
 	return active;
+}
+
+void NewEncoder::attachCallback(EncoderCallBack cback, void *uPtr) {
+	callBackPtr = cback;
+	userPointer = uPtr;
 }
 
 int16_t NewEncoder::setValue(int16_t val) {
@@ -177,7 +241,7 @@ int16_t NewEncoder::setValue(int16_t val) {
 #if defined(__AVR__)
 	noInterrupts();  // 16-bit access not atomic on 8-bit processor
 #endif
-	_currentValue = val;
+	liveState.currentValue = val;
 #if defined(__AVR__)
 	interrupts();
 #endif
@@ -185,18 +249,30 @@ int16_t NewEncoder::setValue(int16_t val) {
 }
 
 int16_t NewEncoder::operator =(int16_t val) {
-	return setValue(val);
+	if (val < _minValue) {
+		val = _minValue;
+	} else if (val > _maxValue) {
+		val = _maxValue;
+	}
+#if defined(__AVR__)
+	noInterrupts();  // 16-bit access not atomic on 8-bit processor
+#endif
+	liveState.currentValue = val;
+#if defined(__AVR__)
+	interrupts();
+#endif
+	return val;
 }
 
 int16_t NewEncoder::getValue() {
 #if defined(__AVR__)
 	int16_t val;
 	noInterrupts();  // 16-bit access not atomic on 8-bit processor
-	val = _currentValue;
+	val = liveState.currentValue;
 	interrupts();
 	return val;
 #else
-	return _currentValue;
+	return liveState.currentValue;
 #endif
 }
 
@@ -204,11 +280,11 @@ NewEncoder::operator int16_t() const {
 #if defined(__AVR__)
 	int16_t val;
 	noInterrupts();  // 16-bit access not atomic on 8-bit processor
-	val = _currentValue;
+	val = liveState.currentValue;
 	interrupts();
 	return val;
 #else
-	return _currentValue;
+	return liveState.currentValue;
 #endif
 }
 
@@ -221,8 +297,8 @@ int16_t NewEncoder::getAndSet(int16_t val) {
 	}
 	noInterrupts()
 	;
-	localCurrentValue = _currentValue;
-	_currentValue = val;
+	localCurrentValue = liveState.currentValue;
+	liveState.currentValue = val;
 	interrupts()
 	;
 	return localCurrentValue;
@@ -246,10 +322,6 @@ bool NewEncoder::downClick() {
 	}
 }
 
-void NewEncoder::attachCallback(EncoderCallBack ptr) {
-	callBackPtr = ptr;
-}
-
 bool NewEncoder::newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent) {
 	bool success = false;
 #if defined(__AVR__)
@@ -262,7 +334,7 @@ bool NewEncoder::newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent)
 			} else if (newCurrent > newMax) {
 				newCurrent = newMax;
 			}
-			_currentValue = newCurrent;
+			liveState.currentValue = newCurrent;
 			_minValue = newMin;
 			_maxValue = newMax;
 			success = true;
@@ -293,35 +365,39 @@ void NewEncoder::bPinChange() {
 }
 
 void NewEncoder::pinChangeHandler(uint8_t index) {
-	uint8_t newState;
+	uint8_t newStateVariable;
 
-	newState = NewEncoder::tablePtr[_currentState][index];
-	_currentState = newState & STATE_MASK;
-	if ((newState & DELTA_MASK) != 0) {
-		if ((newState & DELTA_MASK) == INCREMENT_DELTA) {
+	newStateVariable = NewEncoder::tablePtr[currentStateVariable][index];
+	currentStateVariable = newStateVariable & STATE_MASK;
+	if ((newStateVariable & DELTA_MASK) != 0) {
+		if ((newStateVariable & DELTA_MASK) == INCREMENT_DELTA) {
 			clickUp = true;
 			clickDown = false;
 		} else {
 			clickUp = false;
 			clickDown = true;
 		}
-		updateValue(newState);
+		updateValue(newStateVariable);
 		if (callBackPtr != nullptr) {
-			callBackPtr(*this);
+			//memcpy((void *)&tempState, (void *)&liveState, sizeof(EncoderState));
+			callBackPtr(this, &liveState, userPointer);
 		}
 	}
 }
 
-void NewEncoder::updateValue(uint8_t updatedState) {
-	if ((updatedState & DELTA_MASK) == INCREMENT_DELTA) {
-		if (_currentValue < _maxValue) {
-			_currentValue++;
+void NewEncoder::updateValue(uint8_t updatedStateVariable) {
+	if ((updatedStateVariable & DELTA_MASK) == INCREMENT_DELTA) {
+		liveState.currentClick = UpClick;
+		if (liveState.currentValue < _maxValue) {
+			liveState.currentValue++;
 		}
-	} else if ((updatedState & DELTA_MASK) == DECREMENT_DELTA) {
-		if (_currentValue > _minValue) {
-			_currentValue--;
+	} else if ((updatedStateVariable & DELTA_MASK) == DECREMENT_DELTA) {
+		liveState.currentClick = DownClick;
+		if (liveState.currentValue > _minValue) {
+			liveState.currentValue--;
 		}
 	}
+	stateChanged = true;
 }
 
 bool NewEncoder::attachEncoderInterrupt(uint8_t interruptNumber) {

@@ -24,7 +24,6 @@
 
 class NewEncoder;
 typedef void (NewEncoder::*PinChangeFunction)();
-typedef void (*EncoderCallBack)(NewEncoder &);
 
 struct isrInfo {
 	NewEncoder *objectPtr;
@@ -36,30 +35,43 @@ typedef uint8_t encoderStateTransition[4];
 #define CALL_MEMBER_FN(objectPtr, functPtr) ((objectPtr)->*(functPtr))()
 
 class NewEncoder {
+
 public:
-	NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type =
-	FULL_PULSE);
+	enum EncoderClick {
+		NoClick, DownClick, UpClick
+	};
+
+	struct EncoderState {
+		int16_t currentValue = 0;
+		EncoderClick currentClick = NoClick;
+	};
+
+private:
+	typedef void (*EncoderCallBack)(NewEncoder *, const volatile EncoderState *, void *);
+
+public:
+	NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE);
 	NewEncoder();
 	virtual ~NewEncoder();
 	bool begin();
-	virtual void configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type =
-	FULL_PULSE);
+	virtual void configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE);
 	void end();
 	bool enabled();
-	int16_t setValue(int16_t);
-	int16_t getValue();
-	int16_t operator=(int16_t val);
-	int16_t getAndSet(int16_t val = 0);
-	operator int16_t() const;
-	bool upClick();
-	bool downClick();
-	void attachCallback(EncoderCallBack ptr);
-	bool newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent);
+	void attachCallback(EncoderCallBack cback, void *uPtr = nullptr);
+	bool getState(EncoderState &state);
+	bool getAndSet(int16_t val, EncoderState &Oldstate, EncoderState &Newstate);
+	bool newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent, EncoderState &state);
 
 protected:
+    // This function may be implemented in an inherited class to customize the increment/decrement and min/max behavior.
+    // See the source code and CustomEncoder example
+    // Caution - this function is called in interrupt context.
 	virtual void updateValue(uint8_t updatedState);
+
 	volatile int16_t _minValue = 0, _maxValue = 0;
-	volatile int16_t _currentValue;
+	volatile EncoderState liveState;
+	volatile bool stateChanged;
+	EncoderState localState;
 
 private:
 	void pinChangeHandler(uint8_t index);
@@ -68,10 +80,9 @@ private:
 	bool active = false;
 	bool configured = false;
 	uint8_t _aPin = 0, _bPin = 0;
-	//int16_t _interruptA = -1, _interruptB = -1;
 	const encoderStateTransition *tablePtr = nullptr;
 	volatile uint8_t _aPinValue, _bPinValue;
-	volatile uint8_t _currentState;
+	volatile uint8_t currentStateVariable;
 	volatile IO_REG_TYPE * _aPin_register;
 	volatile IO_REG_TYPE * _bPin_register;
 	volatile IO_REG_TYPE _aPin_bitmask;
@@ -86,6 +97,7 @@ private:
 
 	static bool attachEncoderInterrupt(uint8_t interruptNumber);
 	EncoderCallBack callBackPtr = nullptr;
+	void *userPointer = nullptr;
 
 #if CORE_NUM_INTERRUPT > 0
 	static ESP_ISR void isr00(void);
@@ -206,7 +218,7 @@ private:
 	#endif
 #if CORE_NUM_INTERRUPT > 39
 	static ESP_ISR void isr39(void);
-#endif
+	#endif
 #if CORE_NUM_INTERRUPT > 40
 	static ESP_ISR void isr40(void);
 #endif
@@ -279,6 +291,32 @@ private:
 #if CORE_NUM_INTERRUPT > 63
 	static ESP_ISR void isr63(void);
 #endif
-};
 
+// -------- Deprecated Public Functions ---------
+public:
+
+	[[deprecated ("May be removed in future release. See README and library examples.")]]
+	int16_t setValue(int16_t);
+
+	[[deprecated ("May be removed in future release. See README and library examples.")]]
+	int16_t getValue();
+
+	[[deprecated ("May be removed in future release. See README and library examples.")]]
+	int16_t operator=(int16_t val);
+
+	[[deprecated ("May be removed in future release. See README and library examples.")]]
+	int16_t getAndSet(int16_t val = 0);
+
+	[[deprecated ("May be removed in future release. See README and library examples.")]]
+	operator int16_t() const;
+
+	[[deprecated ("May be removed in future release. See README and library examples.")]]
+	bool upClick();
+
+	[[deprecated ("May be removed in future release. See README and library examples.")]]
+	bool downClick();
+
+	[[deprecated ("May be removed in future release. See README and library examples.")]]
+	bool newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent);
+};
 #endif /* NEWENCODER_H_ */
