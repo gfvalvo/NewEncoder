@@ -6,7 +6,7 @@ The encoders' switches are debounced using a state table approach.
 Two interrupt-capable pins are required for each encoder connected. Thus, only one encoder can be used with an Arduino Uno for example.
 
 The encoders' "A" and "B" terminals should be connected to the processor's inputs and its common terminal should be grounded. The library enables the processor's internal pull-ups, so external ones are not required.
-# Version 2.0:
+# Version 2.x:
 This is a major update to the NewEncoder library. It addresses discrepancies that could occur due to the nature of interrupts. Previous version could provide inconsistent results between the getValue(), upClick(), and downClick() functions.
 
 For example a call to getValue() might indicate that the encoder was not moved, but a call to upClick() or downClick() immediately following this could show that it was. Or, upClick() might have indicated no change from the encoder but a call to getValue() immediately following this could return an incremented value.
