@@ -52,7 +52,7 @@ void loop() {
       if (currentValue != prevEncoderValue[index]) {
         Serial.println(currentValue);
         prevEncoderValue[index] = currentValue;
-      } else
+      } else {
         switch (currentEncoderState.currentClick) {
           case NewEncoder::UpClick:
             Serial.println("at upper limit.");
@@ -65,6 +65,7 @@ void loop() {
           default:
             break;
         }
+      }
     }
   }
 }
