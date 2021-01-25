@@ -346,7 +346,7 @@ bool NewEncoder::newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent)
 	return success;
 }
 
-void NewEncoder::aPinChange() {
+void ESP_ISR NewEncoder::aPinChange() {
 	uint8_t newPinValue = DIRECT_PIN_READ(_aPin_register, _aPin_bitmask);
 	if (newPinValue == _aPinValue) {
 		return;
@@ -355,7 +355,7 @@ void NewEncoder::aPinChange() {
 	pinChangeHandler(0b00 | _aPinValue);  // Falling aPin == 0b00, Rising aPin = 0b01;
 }
 
-void NewEncoder::bPinChange() {
+void ESP_ISR NewEncoder::bPinChange() {
 	uint8_t newPinValue = DIRECT_PIN_READ(_bPin_register, _bPin_bitmask);
 	if (newPinValue == _bPinValue) {
 		return;
@@ -364,7 +364,7 @@ void NewEncoder::bPinChange() {
 	pinChangeHandler(0b10 | _bPinValue);  // Falling bPin == 0b10, Rising bPin = 0b11;
 }
 
-void NewEncoder::pinChangeHandler(uint8_t index) {
+void ESP_ISR NewEncoder::pinChangeHandler(uint8_t index) {
 	uint8_t newStateVariable;
 
 	newStateVariable = NewEncoder::tablePtr[currentStateVariable][index];
@@ -379,13 +379,12 @@ void NewEncoder::pinChangeHandler(uint8_t index) {
 		}
 		updateValue(newStateVariable);
 		if (callBackPtr != nullptr) {
-			//memcpy((void *)&tempState, (void *)&liveState, sizeof(EncoderState));
 			callBackPtr(this, &liveState, userPointer);
 		}
 	}
 }
 
-void NewEncoder::updateValue(uint8_t updatedStateVariable) {
+void ESP_ISR NewEncoder::updateValue(uint8_t updatedStateVariable) {
 	if ((updatedStateVariable & DELTA_MASK) == INCREMENT_DELTA) {
 		liveState.currentClick = UpClick;
 		if (liveState.currentValue < _maxValue) {

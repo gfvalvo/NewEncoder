@@ -62,6 +62,9 @@ public:
 	bool getAndSet(int16_t val, EncoderState &Oldstate, EncoderState &Newstate);
 	bool newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent, EncoderState &state);
 
+	NewEncoder(const NewEncoder &) = delete; // delete copy constructor. no copying allowed
+	NewEncoder &operator=(const NewEncoder &) = delete; // delete operator=. no assignment allowed
+
 protected:
     // This function may be implemented in an inherited class to customize the increment/decrement and min/max behavior.
     // See the source code and CustomEncoder example
