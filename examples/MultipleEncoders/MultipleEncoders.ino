@@ -11,7 +11,7 @@ NewEncoder encoders[] = {
   { 11, 12, -10, 25, 8, FULL_PULSE }
 };
 
-const uint8_t numEncoders = sizeof(encoders) / sizeof(NewEncoder);
+const uint8_t numEncoders = sizeof(encoders) / sizeof(encoders[0]);
 int16_t prevEncoderValue[numEncoders];
 
 void setup() {
