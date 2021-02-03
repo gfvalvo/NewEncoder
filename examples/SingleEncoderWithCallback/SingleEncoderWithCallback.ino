@@ -8,7 +8,7 @@ void ESP_ISR callBack(NewEncoder *encPtr, const volatile NewEncoder::EncoderStat
 // Use HALF_PULSE for endoders that produce one complete quadrature pulse for every two detents, such as: https://www.mouser.com/ProductDetail/alps/ec11e15244g1/?qs=YMSFtX0bdJDiV4LBO61anw==&countrycode=US&currencycode=USD
 NewEncoder encoder(2, 3, -20, 20, 0, FULL_PULSE);
 
-volatile int16_t prevEncoderValue;
+int16_t prevEncoderValue;
 volatile NewEncoder::EncoderState newState;
 volatile bool newValue = false;
 
@@ -66,7 +66,6 @@ void loop() {
 void ESP_ISR callBack(NewEncoder *encPtr, const volatile NewEncoder::EncoderState *state, void *uPtr) {
   (void) encPtr;
   (void) uPtr;
-  newState.currentValue = state->currentValue;
-  newState.currentClick = state->currentClick;
+  memcpy((void *)&newState, (void *)state, sizeof(NewEncoder::EncoderState));
   newValue = true;
 }
