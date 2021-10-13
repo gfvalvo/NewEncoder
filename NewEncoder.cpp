@@ -217,6 +217,8 @@ bool NewEncoder::newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent,
 	stateChanged = false;
 	liveState.currentValue = newCurrent;
 	liveState.currentClick = NoClick;
+	_minValue = newMin;
+	_maxValue = newMax;
 	memcpy((void *) &localState, (void *) &liveState, sizeof(EncoderState));
 	interrupts();
 	memcpy((void *) &state, (void *) &localState, sizeof(EncoderState));
