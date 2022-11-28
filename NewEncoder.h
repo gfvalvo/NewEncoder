@@ -4,12 +4,19 @@
 #ifndef NEWENCODER_H_
 #define NEWENCODER_H_
 
+#undef USE_FUNCTIONAL_ISR
+#undef ESP_ISR
+
 #if defined(ESP8266) || defined(ESP32)
 #define ESP_ISR IRAM_ATTR
-#define ESP_PROCESSOR
+#define USE_FUNCTIONAL_ISR
+#include "FunctionalInterrupt.h"
 #else
 #define ESP_ISR
-#undef ESP_PROCESSOR
+#endif
+
+#ifdef ARDUINO_ARCH_STM32
+#define USE_FUNCTIONAL_ISR
 #endif
 
 #define STATE_MASK 0b00000111
@@ -44,17 +51,17 @@ public:
 	NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE);
 	NewEncoder();
 	virtual ~NewEncoder();
-	bool begin();
+	virtual bool begin();
 	virtual void configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE);
-	void end();
-	bool enabled();
+	virtual void end();
+	bool enabled() const;
 	void attachCallback(EncoderCallBack cback, void *uPtr = nullptr);
 	bool getState(EncoderState &state);
 	bool getAndSet(int16_t val, EncoderState &Oldstate, EncoderState &Newstate);
 	bool newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent, EncoderState &state);
 
 	NewEncoder(const NewEncoder&) = delete; // delete copy constructor. no copying allowed
-	NewEncoder& operator=(const NewEncoder&) = delete; // delete operator=. no assignment allowed
+	NewEncoder& operator=(const NewEncoder&) = delete; // delete operator=(). no assignment allowed
 
 protected:
 	// This function may be implemented in an inherited class to customize the increment/decrement and min/max behavior.
@@ -66,13 +73,14 @@ protected:
 	volatile EncoderState liveState;
 	volatile bool stateChanged;
 	EncoderState localState;
+	bool configured = false;
 
 private:
 	void pinChangeHandler(uint8_t index);
 	void aPinChange();
 	void bPinChange();
 	bool active = false;
-	bool configured = false;
+
 	uint8_t _aPin = 0, _bPin = 0;
 	const encoderStateTransition *tablePtr = nullptr;
 	volatile uint8_t _aPinValue, _bPinValue;
@@ -90,7 +98,7 @@ private:
 	EncoderCallBack callBackPtr = nullptr;
 	void *userPointer = nullptr;
 
-#ifndef ESP_PROCESSOR
+#ifndef USE_FUNCTIONAL_ISR
 	using PinChangeFunction = void (NewEncoder::*)();
 	using isrFunct = void (*)();
 
@@ -132,7 +140,7 @@ public:
 	bool newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent);
 };
 
-#ifndef ESP_PROCESSOR
+#ifndef USE_FUNCTIONAL_ISR
 template<uint8_t NUM_INTERRUPTS>
 NewEncoder::isrFunct NewEncoder::getIsr(uint8_t intNumber) {
 	if (intNumber == (NUM_INTERRUPTS - 1)) {
