@@ -49,9 +49,7 @@ const NewEncoder::encoderStateTransition NewEncoder::halfPulseTransitionTable[] 
 		{DEBOUNCE_3, DETENT_1, DEBOUNCE_2, DETENT_1}  // DETENT_1 0b111
 };
 
-#ifdef ESP_PROCESSOR
-#include "FunctionalInterrupt.h"
-#else
+#ifndef USE_FUNCTIONAL_ISR
 NewEncoder::isrInfo NewEncoder::_isrTable[CORE_NUM_INTERRUPT];
 #endif
 
@@ -129,8 +127,11 @@ bool NewEncoder::begin() {
 		return false;
 	}
 
-	int16_t _interruptA = digitalPinToInterrupt(_aPin);
-	int16_t _interruptB = digitalPinToInterrupt(_bPin);
+	//int16_t _interruptA = digitalPinToInterrupt(_aPin);
+	//int16_t _interruptB = digitalPinToInterrupt(_bPin);
+
+	decltype(NOT_AN_INTERRUPT) _interruptA = digitalPinToInterrupt(_aPin);
+	decltype(NOT_AN_INTERRUPT) _interruptB = digitalPinToInterrupt(_bPin);
 
 	if (_interruptA == _interruptB) {
 		return false;
@@ -155,7 +156,7 @@ bool NewEncoder::begin() {
 		currentStateVariable = DETENT_1;
 	}
 
-#ifndef ESP_PROCESSOR
+#ifndef USE_FUNCTIONAL_ISR
 	_isrTable[_interruptA].objectPtr = this;
 	_isrTable[_interruptA].functPtr = &NewEncoder::aPinChange;
 	auto isrA = getIsr(_interruptA);
@@ -247,7 +248,7 @@ bool NewEncoder::newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent,
 	return true;
 }
 
-bool NewEncoder::enabled() {
+bool NewEncoder::enabled() const {
 	return active;
 }
 
