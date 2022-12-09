@@ -20,14 +20,14 @@
 #define CCW_STATE_3 0b110
 
 const NewEncoder::encoderStateTransition NewEncoder::fullPulseTransitionTable[] = {
-		{CW_STATE_2, CW_STATE_3, CW_STATE_2, CW_STATE_1}, // cwState2 = 0b000
-		{CW_STATE_2, CW_STATE_3, CW_STATE_3, START_STATE | INCREMENT_DELTA}, // cwState3 = 0b001
-		{CW_STATE_1, START_STATE, CW_STATE_2, CW_STATE_1},  // cwState1 = 0b010
-		{CW_STATE_1, START_STATE, CCW_STATE_1, START_STATE}, // startState = 0b011
-		{CCW_STATE_2, CCW_STATE_1, CCW_STATE_2, CCW_STATE_3}, // ccwState2 = 0b100
-		{CCW_STATE_2, CCW_STATE_1, CCW_STATE_1, START_STATE}, // ccwState1 = 0b101
-		{CCW_STATE_3, START_STATE | DECREMENT_DELTA, CCW_STATE_2, CCW_STATE_3}, // ccwState3 = 0b110
-		{START_STATE, START_STATE, START_STATE, START_STATE} // 0b111 illegal state should never be in it
+		{ CW_STATE_2, CW_STATE_3, CW_STATE_2, CW_STATE_1 }, // cwState2 = 0b000
+		{ CW_STATE_2, CW_STATE_3, CW_STATE_3, START_STATE | INCREMENT_DELTA }, // cwState3 = 0b001
+		{ CW_STATE_1, START_STATE, CW_STATE_2, CW_STATE_1 },  // cwState1 = 0b010
+		{ CW_STATE_1, START_STATE, CCW_STATE_1, START_STATE }, // startState = 0b011
+		{ CCW_STATE_2, CCW_STATE_1, CCW_STATE_2, CCW_STATE_3 }, // ccwState2 = 0b100
+		{ CCW_STATE_2, CCW_STATE_1, CCW_STATE_1, START_STATE }, // ccwState1 = 0b101
+		{ CCW_STATE_3, START_STATE | DECREMENT_DELTA, CCW_STATE_2, CCW_STATE_3 }, // ccwState3 = 0b110
+		{ START_STATE, START_STATE, START_STATE, START_STATE } // 0b111 illegal state should never be in it
 };
 
 // Define states and transition table for "one pulse per two detents" type encoder
@@ -39,14 +39,14 @@ const NewEncoder::encoderStateTransition NewEncoder::fullPulseTransitionTable[] 
 #define DEBOUNCE_3 0b110
 
 const NewEncoder::encoderStateTransition NewEncoder::halfPulseTransitionTable[] = {
-		{DETENT_0, DEBOUNCE_1, DETENT_0, DEBOUNCE_0},  // DETENT_0 0b000
-		{DETENT_0, DEBOUNCE_1, DEBOUNCE_1, DETENT_1 | INCREMENT_DELTA}, // DEBOUNCE_1 0b001
-		{DEBOUNCE_0, DETENT_1 | DECREMENT_DELTA, DETENT_0, DEBOUNCE_0},  // DEBOUNCE_0 0b010
-		{DETENT_1, DETENT_1, DETENT_1, DETENT_1},  // 0b011 - illegal state should never be in it
-		{DETENT_0, DETENT_0, DETENT_0, DETENT_0},  // 0b100 - illegal state should never be in it
-		{DETENT_0 | DECREMENT_DELTA, DEBOUNCE_2, DEBOUNCE_2, DETENT_1}, // DEBOUNCE_2 0b101
-		{DEBOUNCE_3, DETENT_1, DETENT_0 | INCREMENT_DELTA, DEBOUNCE_3},  // DEBOUNCE_3 0b110
-		{DEBOUNCE_3, DETENT_1, DEBOUNCE_2, DETENT_1}  // DETENT_1 0b111
+		{ DETENT_0, DEBOUNCE_1, DETENT_0, DEBOUNCE_0 },  // DETENT_0 0b000
+		{ DETENT_0, DEBOUNCE_1, DEBOUNCE_1, DETENT_1 | INCREMENT_DELTA }, // DEBOUNCE_1 0b001
+		{ DEBOUNCE_0, DETENT_1 | DECREMENT_DELTA, DETENT_0, DEBOUNCE_0 },  // DEBOUNCE_0 0b010
+		{ DETENT_1, DETENT_1, DETENT_1, DETENT_1 },  // 0b011 - illegal state should never be in it
+		{ DETENT_0, DETENT_0, DETENT_0, DETENT_0 },  // 0b100 - illegal state should never be in it
+		{ DETENT_0 | DECREMENT_DELTA, DEBOUNCE_2, DEBOUNCE_2, DETENT_1 }, // DEBOUNCE_2 0b101
+		{ DEBOUNCE_3, DETENT_1, DETENT_0 | INCREMENT_DELTA, DEBOUNCE_3 },  // DEBOUNCE_3 0b110
+		{ DEBOUNCE_3, DETENT_1, DEBOUNCE_2, DETENT_1 }  // DETENT_1 0b111
 };
 
 #ifndef USE_FUNCTIONAL_ISR
@@ -127,11 +127,10 @@ bool NewEncoder::begin() {
 		return false;
 	}
 
-	//int16_t _interruptA = digitalPinToInterrupt(_aPin);
-	//int16_t _interruptB = digitalPinToInterrupt(_bPin);
+	using InterruptNumberType = decltype(NOT_AN_INTERRUPT);
 
-	decltype(NOT_AN_INTERRUPT) _interruptA = digitalPinToInterrupt(_aPin);
-	decltype(NOT_AN_INTERRUPT) _interruptB = digitalPinToInterrupt(_bPin);
+	InterruptNumberType _interruptA = static_cast<InterruptNumberType>(digitalPinToInterrupt(_aPin));
+	InterruptNumberType _interruptB = static_cast<InterruptNumberType>(digitalPinToInterrupt(_bPin));
 
 	if (_interruptA == _interruptB) {
 		return false;

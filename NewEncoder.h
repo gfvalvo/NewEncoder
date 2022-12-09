@@ -153,6 +153,7 @@ NewEncoder::isrFunct NewEncoder::getIsr(uint8_t intNumber) {
 
 template<>
 inline NewEncoder::isrFunct NewEncoder::getIsr<0>(uint8_t intNum) {
+	(void) intNum;
 	return nullptr;
 }
 #endif
