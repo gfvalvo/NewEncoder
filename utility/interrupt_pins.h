@@ -88,9 +88,10 @@
 #endif
 
 #if !defined(CORE_NUM_INTERRUPT)
-#error "Interrupts are unknown for this board, please add to this code"
+#error "Interrupts are unknown for this board. Please specify in interrupt_pins.h"
+#else
+static_assert(CORE_NUM_INTERRUPT > 1, "NewEncoder requires at least 2 interrupt pins. The currently-selected board does not meet this requirement.");
 #endif
-#if CORE_NUM_INTERRUPT <= 1
-#error "NewEncoder requires at least 2 interrupt pins. The currently-selected board does not."
-#endif
+
+
 
