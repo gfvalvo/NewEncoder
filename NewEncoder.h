@@ -4,34 +4,19 @@
 #ifndef NEWENCODER_H_
 #define NEWENCODER_H_
 
-#undef USE_FUNCTIONAL_ISR
-#undef ESP_ISR
-
-#if defined(ESP8266) || defined(ESP32)
-#define ESP_ISR IRAM_ATTR
-#define USE_FUNCTIONAL_ISR
-#include "FunctionalInterrupt.h"
-#else
-#define ESP_ISR
-#endif
-
-#ifdef ARDUINO_ARCH_STM32
-#define USE_FUNCTIONAL_ISR
-#endif
-
 #define STATE_MASK 0b00000111
 #define DELTA_MASK 0b00011000
 #define INCREMENT_DELTA 0b00001000
 #define DECREMENT_DELTA 0b00010000
 
 #include <Arduino.h>
-#include "utility/interrupt_pins.h"
-#include "utility/direct_pin_read.h"
 
 #define FULL_PULSE 0
 #define HALF_PULSE 1
 
-class NewEncoder {
+#include "DataProvider.h"
+
+class NewEncoder: public DataConsumer {
 
 public:
 	enum EncoderClick {
@@ -63,6 +48,8 @@ public:
 	NewEncoder(const NewEncoder&) = delete; // delete copy constructor. no copying allowed
 	NewEncoder& operator=(const NewEncoder&) = delete; // delete operator=(). no assignment allowed
 
+	virtual void ESP_ISR checkPinChange(uint8_t index) { pinChangeHandler(index); };
+
 protected:
 	// This function may be implemented in an inherited class to customize the increment/decrement and min/max behavior.
 	// See the source code and CustomEncoder example
@@ -77,18 +64,12 @@ protected:
 
 private:
 	void pinChangeHandler(uint8_t index);
-	void aPinChange();
-	void bPinChange();
 	bool active = false;
+	DataProvider dataProvider;
 
-	uint8_t _aPin = 0, _bPin = 0;
 	const encoderStateTransition *tablePtr = nullptr;
-	volatile uint8_t _aPinValue, _bPinValue;
 	volatile uint8_t currentStateVariable;
-	volatile IO_REG_TYPE *_aPin_register;
-	volatile IO_REG_TYPE *_bPin_register;
-	volatile IO_REG_TYPE _aPin_bitmask;
-	volatile IO_REG_TYPE _bPin_bitmask;
+
 	volatile bool clickUp = false;
 	volatile bool clickDown = false;
 
@@ -97,20 +78,6 @@ private:
 
 	EncoderCallBack callBackPtr = nullptr;
 	void *userPointer = nullptr;
-
-#ifndef USE_FUNCTIONAL_ISR
-	using PinChangeFunction = void (NewEncoder::*)();
-	using isrFunct = void (*)();
-
-	struct isrInfo {
-		NewEncoder *objectPtr;
-		PinChangeFunction functPtr;
-	};
-	static isrInfo _isrTable[CORE_NUM_INTERRUPT];
-
-	template<uint8_t NUM_INTERRUPTS = CORE_NUM_INTERRUPT>
-	static isrFunct getIsr(uint8_t intNumber);
-#endif
 
 // -------- Deprecated Public Functions ---------
 public:
@@ -139,23 +106,5 @@ public:
 	[[deprecated ("May be removed in future release. See README and library examples.")]]
 	bool newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent);
 };
-
-#ifndef USE_FUNCTIONAL_ISR
-template<uint8_t NUM_INTERRUPTS>
-NewEncoder::isrFunct NewEncoder::getIsr(uint8_t intNumber) {
-	if (intNumber == (NUM_INTERRUPTS - 1)) {
-		return [] {
-			((_isrTable[NUM_INTERRUPTS - 1].objectPtr)->*(_isrTable[NUM_INTERRUPTS - 1].functPtr))();
-		};
-	}
-	return getIsr<NUM_INTERRUPTS - 1>(intNumber);
-}
-
-template<>
-inline NewEncoder::isrFunct NewEncoder::getIsr<0>(uint8_t intNum) {
-	(void) intNum;
-	return nullptr;
-}
-#endif
 
 #endif /* NEWENCODER_H_ */

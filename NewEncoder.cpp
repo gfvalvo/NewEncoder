@@ -49,10 +49,6 @@ const NewEncoder::encoderStateTransition NewEncoder::halfPulseTransitionTable[] 
 		{ DEBOUNCE_3, DETENT_1, DEBOUNCE_2, DETENT_1 }  // DETENT_1 0b111
 };
 
-#ifndef USE_FUNCTIONAL_ISR
-NewEncoder::isrInfo NewEncoder::_isrTable[CORE_NUM_INTERRUPT];
-#endif
-
 NewEncoder::NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue,
 		int16_t maxValue, int16_t initalValue, uint8_t type) {
 	active = false;
@@ -62,8 +58,6 @@ NewEncoder::NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue,
 NewEncoder::NewEncoder() {
 	active = false;
 	configured = false;
-	_aPin_register = nullptr;
-	_bPin_register = nullptr;
 }
 
 NewEncoder::~NewEncoder() {
@@ -76,10 +70,7 @@ void NewEncoder::end() {
 	}
 	active = false;
 
-	int16_t _interruptA = digitalPinToInterrupt(_aPin);
-	int16_t _interruptB = digitalPinToInterrupt(_bPin);
-	detachInterrupt(_interruptA);
-	detachInterrupt(_interruptB);
+	dataProvider.end();
 }
 
 void NewEncoder::configure(uint8_t aPin, uint8_t bPin, int16_t minValue,
@@ -88,14 +79,11 @@ void NewEncoder::configure(uint8_t aPin, uint8_t bPin, int16_t minValue,
 	if (active) {
 		end();
 	}
-	_aPin = aPin;
-	_bPin = bPin;
+
+	dataProvider.configure(aPin, bPin, this);
+
 	_minValue = minValue;
 	_maxValue = maxValue;
-	_aPin_register = PIN_TO_BASEREG(aPin);
-	_bPin_register = PIN_TO_BASEREG(bPin);
-	_aPin_bitmask = PIN_TO_BITMASK(aPin);
-	_bPin_bitmask = PIN_TO_BITMASK(bPin);
 
 	if (initalValue > _maxValue) {
 		initalValue = _maxValue;
@@ -123,68 +111,20 @@ bool NewEncoder::begin() {
 	if (!configured) {
 		return false;
 	}
-	if (_aPin == _bPin) {
-		return false;
-	}
 
-	using InterruptNumberType = decltype(NOT_AN_INTERRUPT);
-
-	InterruptNumberType _interruptA = static_cast<InterruptNumberType>(digitalPinToInterrupt(_aPin));
-	InterruptNumberType _interruptB = static_cast<InterruptNumberType>(digitalPinToInterrupt(_bPin));
-
-	if (_interruptA == _interruptB) {
-		return false;
-	}
-	if (_interruptA == NOT_AN_INTERRUPT) {
-		return false;
-	}
-	if (_interruptB == NOT_AN_INTERRUPT) {
-		return false;
-	}
 	if (_minValue >= _maxValue) {
 		return false;
 	}
 
-	pinMode(_aPin, INPUT_PULLUP);
-	pinMode(_bPin, INPUT_PULLUP);
-	delay(2);  // Seems to help ensure first reading after pinMode is correct
-	_aPinValue = DIRECT_PIN_READ(_aPin_register, _aPin_bitmask);
-	_bPinValue = DIRECT_PIN_READ(_bPin_register, _bPin_bitmask);
-	currentStateVariable = (_bPinValue << 1) | _aPinValue;
+	if (!dataProvider.begin()) {
+		return false;
+	}
+
+	currentStateVariable = (dataProvider.bPinValue() << 1) | dataProvider.aPinValue();
 	if ((tablePtr == halfPulseTransitionTable) && (currentStateVariable == (DETENT_1 & 0b11))) {
 		currentStateVariable = DETENT_1;
 	}
 
-#ifndef USE_FUNCTIONAL_ISR
-	_isrTable[_interruptA].objectPtr = this;
-	_isrTable[_interruptA].functPtr = &NewEncoder::aPinChange;
-	auto isrA = getIsr(_interruptA);
-	if (isrA == nullptr) {
-		return false;
-	}
-
-	_isrTable[_interruptB].objectPtr = this;
-	_isrTable[_interruptB].functPtr = &NewEncoder::bPinChange;
-	auto isrB = getIsr(_interruptB);
-	if (isrB == nullptr) {
-		return false;
-	}
-
-	attachInterrupt(_interruptA, isrA, CHANGE);
-	attachInterrupt(_interruptB, isrB, CHANGE);
-
-#else
-	auto aPinIsr = [this] {
-		this->aPinChange();
-	};
-	attachInterrupt(_interruptA, aPinIsr, CHANGE);
-
-	auto bPinIsr = [this] {
-		this->bPinChange();
-	};
-	attachInterrupt(_interruptB, bPinIsr, CHANGE);
-
-#endif
 	active = true;
 	return true;
 }
@@ -368,24 +308,6 @@ bool NewEncoder::newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent)
 	interrupts();
 #endif
 	return success;
-}
-
-void ESP_ISR NewEncoder::aPinChange() {
-	uint8_t newPinValue = DIRECT_PIN_READ(_aPin_register, _aPin_bitmask);
-	if (newPinValue == _aPinValue) {
-		return;
-	}
-	_aPinValue = newPinValue;
-	pinChangeHandler(0b00 | _aPinValue);  // Falling aPin == 0b00, Rising aPin = 0b01;
-}
-
-void ESP_ISR NewEncoder::bPinChange() {
-	uint8_t newPinValue = DIRECT_PIN_READ(_bPin_register, _bPin_bitmask);
-	if (newPinValue == _bPinValue) {
-		return;
-	}
-	_bPinValue = newPinValue;
-	pinChangeHandler(0b10 | _bPinValue);  // Falling bPin == 0b10, Rising bPin = 0b11;
 }
 
 void ESP_ISR NewEncoder::pinChangeHandler(uint8_t index) {
