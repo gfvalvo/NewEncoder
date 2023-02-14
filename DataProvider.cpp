@@ -15,28 +15,28 @@ DataProvider::DataProvider(uint8_t aPin, uint8_t bPin, DataConsumer *target) {
 DataProvider::DataProvider() {
 	_aPin_register = nullptr;
 	_bPin_register = nullptr;
-    _target = nullptr;
+	_target = nullptr;
 }
 
 DataProvider::~DataProvider() {
-    end();
+	end();
 }
 
 void DataProvider::end() {
-    int16_t _interruptA = digitalPinToInterrupt(_aPin);
+	int16_t _interruptA = digitalPinToInterrupt(_aPin);
 	int16_t _interruptB = digitalPinToInterrupt(_bPin);
 	detachInterrupt(_interruptA);
 	detachInterrupt(_interruptB);
 }
 
 void DataProvider::configure(uint8_t aPin, uint8_t bPin, DataConsumer *target) {
-    _aPin = aPin;
+	_aPin = aPin;
 	_bPin = bPin;
 	_aPin_register = PIN_TO_BASEREG(aPin);
 	_bPin_register = PIN_TO_BASEREG(bPin);
 	_aPin_bitmask = PIN_TO_BITMASK(aPin);
 	_bPin_bitmask = PIN_TO_BITMASK(bPin);
-    _target = target;
+	_target = target;
 }
 
 bool DataProvider::begin() {
@@ -104,7 +104,7 @@ void ESP_ISR DataProvider::aPinChange() {
 		return;
 	}
 	_aPinValue = newPinValue;
-    if (!_target) return;
+	if (!_target) return;
 	_target->checkPinChange(0b00 | _aPinValue);  // Falling aPin == 0b00, Rising aPin = 0b01;
 }
 
@@ -114,6 +114,6 @@ void ESP_ISR DataProvider::bPinChange() {
 		return;
 	}
 	_bPinValue = newPinValue;
-    if (!_target) return;
+	if (!_target) return;
 	_target->checkPinChange(0b10 | _bPinValue);  // Falling bPin == 0b10, Rising bPin = 0b11;
 }

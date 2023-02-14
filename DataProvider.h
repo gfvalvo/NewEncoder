@@ -28,27 +28,27 @@
 
 class DataConsumer {
 public:
-    virtual void ESP_ISR checkPinChange(uint8_t index) = 0;
+	virtual void ESP_ISR checkPinChange(uint8_t index) = 0;
 };
 
 class DataProvider {
 
 public:
-    DataProvider(uint8_t aPin, uint8_t bPin, DataConsumer *target);
-    DataProvider();
-    virtual ~DataProvider();
+	DataProvider(uint8_t aPin, uint8_t bPin, DataConsumer *target);
+	DataProvider();
+	virtual ~DataProvider();
 	virtual bool begin();
 	virtual void configure(uint8_t aPin, uint8_t bPin, DataConsumer *target);
 	virtual void end();
 
-    uint8_t aPinValue() const { return _aPinValue; };
-    uint8_t bPinValue() const { return _bPinValue; };
+	uint8_t aPinValue() const { return _aPinValue; };
+	uint8_t bPinValue() const { return _bPinValue; };
 
 private:
 	void aPinChange();
 	void bPinChange();
-    DataConsumer *_target;
-    
+	DataConsumer *_target;
+	
 	uint8_t _aPin = 0, _bPin = 0;
 	volatile uint8_t _aPinValue, _bPinValue;
 	volatile IO_REG_TYPE *_aPin_register;
