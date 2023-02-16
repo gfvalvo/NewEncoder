@@ -35,11 +35,11 @@ private:
 	using encoderStateTransition = uint8_t[4];
 
 public:
-	NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE);
+	NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE, DataProvider *dataProvider = nullptr);
 	NewEncoder();
 	virtual ~NewEncoder();
 	virtual bool begin();
-	virtual void configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE);
+	virtual void configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE,  DataProvider *dataProvider = nullptr);
 	virtual void end();
 	bool enabled() const;
 	void attachCallback(EncoderCallBack cback, void *uPtr = nullptr);
@@ -65,7 +65,7 @@ protected:
 private:
 	void pinChangeHandler(uint8_t index);
 	bool active = false;
-	DataProvider dataProvider;
+	DataProvider *dataProvider = nullptr;
 
 	const encoderStateTransition *tablePtr = nullptr;
 	volatile uint8_t currentStateVariable;

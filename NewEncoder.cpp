@@ -50,9 +50,9 @@ const NewEncoder::encoderStateTransition NewEncoder::halfPulseTransitionTable[] 
 };
 
 NewEncoder::NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue,
-		int16_t maxValue, int16_t initalValue, uint8_t type) {
+		int16_t maxValue, int16_t initalValue, uint8_t type, DataProvider *dataProvider) {
 	active = false;
-	configure(aPin, bPin, minValue, maxValue, initalValue, type);
+	configure(aPin, bPin, minValue, maxValue, initalValue, type, dataProvider);
 }
 
 NewEncoder::NewEncoder() {
@@ -70,17 +70,25 @@ void NewEncoder::end() {
 	}
 	active = false;
 
-	dataProvider.end();
+	if (dataProvider) {
+		dataProvider->end();
+	}
 }
 
 void NewEncoder::configure(uint8_t aPin, uint8_t bPin, int16_t minValue,
-		int16_t maxValue, int16_t initalValue, uint8_t type) {
+		int16_t maxValue, int16_t initalValue, uint8_t type, DataProvider *dataProvider) {
 
 	if (active) {
 		end();
 	}
+	
+	if (!dataProvider) {
+		end();
+		return;
+	}
 
-	dataProvider.configure(aPin, bPin, this);
+	this->dataProvider = dataProvider;
+	dataProvider->configure(aPin, bPin, this);
 
 	_minValue = minValue;
 	_maxValue = maxValue;
@@ -116,11 +124,11 @@ bool NewEncoder::begin() {
 		return false;
 	}
 
-	if (!dataProvider.begin()) {
+	if (!dataProvider->begin()) {
 		return false;
 	}
 
-	currentStateVariable = (dataProvider.bPinValue() << 1) | dataProvider.aPinValue();
+	currentStateVariable = (dataProvider->bPinValue() << 1) | dataProvider->aPinValue();
 	if ((tablePtr == halfPulseTransitionTable) && (currentStateVariable == (DETENT_1 & 0b11))) {
 		currentStateVariable = DETENT_1;
 	}
@@ -132,10 +140,10 @@ bool NewEncoder::begin() {
 bool NewEncoder::getState(EncoderState &state) {
 	bool localStateChanged = stateChanged;
 	if (localStateChanged) {
-		dataProvider.interruptOff();
+		dataProvider->interruptOff();
 		memcpy((void*) &localState, (void*) &liveState, sizeof(EncoderState));
 		stateChanged = false;
-		dataProvider.interruptOn();
+		dataProvider->interruptOn();
 	} else {
 		localState.currentClick = NoClick;
 	}
@@ -150,7 +158,7 @@ bool NewEncoder::getAndSet(int16_t val, EncoderState &Oldstate, EncoderState &Ne
 	} else if (val > _maxValue) {
 		val = _maxValue;
 	}
-	dataProvider.interruptOff();
+	dataProvider->interruptOff();
 	changed = stateChanged;
 	stateChanged = false;
 	memcpy((void*) &Oldstate, (void*) &liveState, sizeof(EncoderState));
@@ -160,7 +168,7 @@ bool NewEncoder::getAndSet(int16_t val, EncoderState &Oldstate, EncoderState &Ne
 	liveState.currentValue = val;
 	liveState.currentClick = NoClick;
 	memcpy((void*) &localState, (void*) &liveState, sizeof(EncoderState));
-	dataProvider.interruptOn();
+	dataProvider->interruptOn();
 	memcpy((void*) &Newstate, (void*) &localState, sizeof(EncoderState));
 	return changed;
 }
@@ -175,14 +183,14 @@ bool NewEncoder::newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent,
 	if (newCurrent > newMax) {
 		newCurrent = newMax;
 	}
-	dataProvider.interruptOff();
+	dataProvider->interruptOff();
 	stateChanged = false;
 	liveState.currentValue = newCurrent;
 	liveState.currentClick = NoClick;
 	_minValue = newMin;
 	_maxValue = newMax;
 	memcpy((void*) &localState, (void*) &liveState, sizeof(EncoderState));
-	dataProvider.interruptOn();
+	dataProvider->interruptOn();
 	memcpy((void*) &state, (void*) &localState, sizeof(EncoderState));
 	return true;
 }
@@ -203,11 +211,11 @@ int16_t NewEncoder::setValue(int16_t val) {
 		val = _maxValue;
 	}
 #if defined(__AVR__)
-	dataProvider.interruptOff();  // 16-bit access not atomic on 8-bit processor
+	dataProvider->interruptOff();  // 16-bit access not atomic on 8-bit processor
 #endif
 	liveState.currentValue = val;
 #if defined(__AVR__)
-	dataProvider.interruptOn();
+	dataProvider->interruptOn();
 #endif
 	return val;
 }
@@ -219,11 +227,11 @@ int16_t NewEncoder::operator =(int16_t val) {
 		val = _maxValue;
 	}
 #if defined(__AVR__)
-	dataProvider.interruptOff();  // 16-bit access not atomic on 8-bit processor
+	dataProvider->interruptOff();  // 16-bit access not atomic on 8-bit processor
 #endif
 	liveState.currentValue = val;
 #if defined(__AVR__)
-	dataProvider.interruptOn();
+	dataProvider->interruptOn();
 #endif
 	return val;
 }
@@ -231,9 +239,9 @@ int16_t NewEncoder::operator =(int16_t val) {
 int16_t NewEncoder::getValue() {
 #if defined(__AVR__)
 	int16_t val;
-	dataProvider.interruptOff();  // 16-bit access not atomic on 8-bit processor
+	dataProvider->interruptOff();  // 16-bit access not atomic on 8-bit processor
 	val = liveState.currentValue;
-	dataProvider.interruptOn();
+	dataProvider->interruptOn();
 	return val;
 #else
 	return liveState.currentValue;
@@ -243,9 +251,9 @@ int16_t NewEncoder::getValue() {
 NewEncoder::operator int16_t() const {
 #if defined(__AVR__)
 	int16_t val;
-	dataProvider.interruptOff();  // 16-bit access not atomic on 8-bit processor
+	dataProvider->interruptOff();  // 16-bit access not atomic on 8-bit processor
 	val = liveState.currentValue;
-	dataProvider.interruptOn();
+	dataProvider->interruptOn();
 	return val;
 #else
 	return liveState.currentValue;
@@ -259,11 +267,11 @@ int16_t NewEncoder::getAndSet(int16_t val) {
 	} else if (val > _maxValue) {
 		val = _maxValue;
 	}
-	dataProvider.interruptOff()
+	dataProvider->interruptOff()
 	;
 	localCurrentValue = liveState.currentValue;
 	liveState.currentValue = val;
-	dataProvider.interruptOn()
+	dataProvider->interruptOn()
 	;
 	return localCurrentValue;
 }
@@ -289,7 +297,7 @@ bool NewEncoder::downClick() {
 bool NewEncoder::newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent) {
 	bool success = false;
 #if defined(__AVR__)
-	dataProvider.interruptOff();  // 16-bit access not atomic on 8-bit processor
+	dataProvider->interruptOff();  // 16-bit access not atomic on 8-bit processor
 #endif
 	if (active) {
 		if (newMax > newMin) {
@@ -305,7 +313,7 @@ bool NewEncoder::newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent)
 		}
 	}
 #if defined(__AVR__)
-	dataProvider.interruptOn();
+	dataProvider->interruptOn();
 #endif
 	return success;
 }
