@@ -117,3 +117,11 @@ void ESP_ISR DataProvider::bPinChange() {
 	if (!_target) return;
 	_target->checkPinChange(0b10 | _bPinValue);  // Falling bPin == 0b10, Rising bPin = 0b11;
 }
+
+void DataProvider::interruptOn() const { 
+	interrupts(); 
+}
+
+void DataProvider::interruptOff() const {
+	noInterrupts();
+}

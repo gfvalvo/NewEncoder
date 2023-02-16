@@ -41,6 +41,9 @@ public:
 	virtual void configure(uint8_t aPin, uint8_t bPin, DataConsumer *target);
 	virtual void end();
 
+	virtual void interruptOn() const;
+	virtual void interruptOff() const;
+
 	uint8_t aPinValue() const { return _aPinValue; };
 	uint8_t bPinValue() const { return _bPinValue; };
 

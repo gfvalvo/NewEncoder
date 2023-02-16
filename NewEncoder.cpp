@@ -132,10 +132,10 @@ bool NewEncoder::begin() {
 bool NewEncoder::getState(EncoderState &state) {
 	bool localStateChanged = stateChanged;
 	if (localStateChanged) {
-		noInterrupts();
+		dataProvider.interruptOff();
 		memcpy((void*) &localState, (void*) &liveState, sizeof(EncoderState));
 		stateChanged = false;
-		interrupts();
+		dataProvider.interruptOn();
 	} else {
 		localState.currentClick = NoClick;
 	}
@@ -150,7 +150,7 @@ bool NewEncoder::getAndSet(int16_t val, EncoderState &Oldstate, EncoderState &Ne
 	} else if (val > _maxValue) {
 		val = _maxValue;
 	}
-	noInterrupts();
+	dataProvider.interruptOff();
 	changed = stateChanged;
 	stateChanged = false;
 	memcpy((void*) &Oldstate, (void*) &liveState, sizeof(EncoderState));
@@ -160,7 +160,7 @@ bool NewEncoder::getAndSet(int16_t val, EncoderState &Oldstate, EncoderState &Ne
 	liveState.currentValue = val;
 	liveState.currentClick = NoClick;
 	memcpy((void*) &localState, (void*) &liveState, sizeof(EncoderState));
-	interrupts();
+	dataProvider.interruptOn();
 	memcpy((void*) &Newstate, (void*) &localState, sizeof(EncoderState));
 	return changed;
 }
@@ -175,14 +175,14 @@ bool NewEncoder::newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent,
 	if (newCurrent > newMax) {
 		newCurrent = newMax;
 	}
-	noInterrupts();
+	dataProvider.interruptOff();
 	stateChanged = false;
 	liveState.currentValue = newCurrent;
 	liveState.currentClick = NoClick;
 	_minValue = newMin;
 	_maxValue = newMax;
 	memcpy((void*) &localState, (void*) &liveState, sizeof(EncoderState));
-	interrupts();
+	dataProvider.interruptOn();
 	memcpy((void*) &state, (void*) &localState, sizeof(EncoderState));
 	return true;
 }
@@ -203,11 +203,11 @@ int16_t NewEncoder::setValue(int16_t val) {
 		val = _maxValue;
 	}
 #if defined(__AVR__)
-	noInterrupts();  // 16-bit access not atomic on 8-bit processor
+	dataProvider.interruptOff();  // 16-bit access not atomic on 8-bit processor
 #endif
 	liveState.currentValue = val;
 #if defined(__AVR__)
-	interrupts();
+	dataProvider.interruptOn();
 #endif
 	return val;
 }
@@ -219,11 +219,11 @@ int16_t NewEncoder::operator =(int16_t val) {
 		val = _maxValue;
 	}
 #if defined(__AVR__)
-	noInterrupts();  // 16-bit access not atomic on 8-bit processor
+	dataProvider.interruptOff();  // 16-bit access not atomic on 8-bit processor
 #endif
 	liveState.currentValue = val;
 #if defined(__AVR__)
-	interrupts();
+	dataProvider.interruptOn();
 #endif
 	return val;
 }
@@ -231,9 +231,9 @@ int16_t NewEncoder::operator =(int16_t val) {
 int16_t NewEncoder::getValue() {
 #if defined(__AVR__)
 	int16_t val;
-	noInterrupts();  // 16-bit access not atomic on 8-bit processor
+	dataProvider.interruptOff();  // 16-bit access not atomic on 8-bit processor
 	val = liveState.currentValue;
-	interrupts();
+	dataProvider.interruptOn();
 	return val;
 #else
 	return liveState.currentValue;
@@ -243,9 +243,9 @@ int16_t NewEncoder::getValue() {
 NewEncoder::operator int16_t() const {
 #if defined(__AVR__)
 	int16_t val;
-	noInterrupts();  // 16-bit access not atomic on 8-bit processor
+	dataProvider.interruptOff();  // 16-bit access not atomic on 8-bit processor
 	val = liveState.currentValue;
-	interrupts();
+	dataProvider.interruptOn();
 	return val;
 #else
 	return liveState.currentValue;
@@ -259,11 +259,11 @@ int16_t NewEncoder::getAndSet(int16_t val) {
 	} else if (val > _maxValue) {
 		val = _maxValue;
 	}
-	noInterrupts()
+	dataProvider.interruptOff()
 	;
 	localCurrentValue = liveState.currentValue;
 	liveState.currentValue = val;
-	interrupts()
+	dataProvider.interruptOn()
 	;
 	return localCurrentValue;
 }
@@ -289,7 +289,7 @@ bool NewEncoder::downClick() {
 bool NewEncoder::newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent) {
 	bool success = false;
 #if defined(__AVR__)
-	noInterrupts();  // 16-bit access not atomic on 8-bit processor
+	dataProvider.interruptOff();  // 16-bit access not atomic on 8-bit processor
 #endif
 	if (active) {
 		if (newMax > newMin) {
@@ -305,7 +305,7 @@ bool NewEncoder::newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent)
 		}
 	}
 #if defined(__AVR__)
-	interrupts();
+	dataProvider.interruptOn();
 #endif
 	return success;
 }
