@@ -344,3 +344,7 @@ void ESP_ISR NewEncoder::updateValue(uint8_t updatedStateVariable) {
 	}
 	stateChanged = true;
 }
+
+void ESP_ISR NewEncoder::checkPinChange(uint8_t index) { 
+	pinChangeHandler(index); 
+};
