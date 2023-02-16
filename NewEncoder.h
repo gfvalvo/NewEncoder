@@ -17,6 +17,8 @@
 #include "DataProvider.h"
 
 class NewEncoder: public DataConsumer {
+protected:
+	virtual void ESP_ISR checkPinChange(uint8_t index) override;
 
 public:
 	enum EncoderClick {
@@ -47,8 +49,6 @@ public:
 
 	NewEncoder(const NewEncoder&) = delete; // delete copy constructor. no copying allowed
 	NewEncoder& operator=(const NewEncoder&) = delete; // delete operator=(). no assignment allowed
-
-	virtual void ESP_ISR checkPinChange(uint8_t index) override;
 
 protected:
 	// This function may be implemented in an inherited class to customize the increment/decrement and min/max behavior.

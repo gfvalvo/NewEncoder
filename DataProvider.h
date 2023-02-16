@@ -27,7 +27,8 @@
 // #define DIRECT_PIN_READ(base, mask)     (((*(base)) & (mask)) ? 1 : 0)
 
 class DataConsumer {
-public:
+	friend class DataProvider;
+protected:
 	virtual void ESP_ISR checkPinChange(uint8_t index) = 0;
 };
 
