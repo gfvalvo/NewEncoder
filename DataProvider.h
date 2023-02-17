@@ -4,6 +4,8 @@
 #ifndef DATAPROVIDER_H_
 #define DATAPROVIDER_H_
 
+#include <Arduino.h>
+
 #undef USE_FUNCTIONAL_ISR
 #undef ESP_ISR
 
