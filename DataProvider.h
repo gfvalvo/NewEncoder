@@ -35,11 +35,14 @@ protected:
 };
 
 class DataProvider {
-
 public:
-	DataProvider(uint8_t aPin, uint8_t bPin, DataConsumer *target);
-	DataProvider();
-	virtual ~DataProvider() = 0;
+	static DataProvider* createDefault() { return DataProvider::createInterruptDataProvider(); };
+	static DataProvider* createInterruptDataProvider();
+	
+public:
+	DataProvider(uint8_t aPin, uint8_t bPin, DataConsumer *target) {};
+	DataProvider() {};
+	virtual ~DataProvider() {};
 	virtual bool begin() = 0;
 	virtual void configure(uint8_t aPin, uint8_t bPin, DataConsumer *target) = 0;
 	virtual void end() = 0;

@@ -125,3 +125,7 @@ void InterruptDataProvider::interruptOn() const {
 void InterruptDataProvider::interruptOff() const {
 	noInterrupts();
 }
+
+DataProvider* DataProvider::createInterruptDataProvider() {
+	return new InterruptDataProvider();
+}

@@ -62,6 +62,8 @@ NewEncoder::NewEncoder() {
 
 NewEncoder::~NewEncoder() {
 	end();
+	delete dataProvider;
+	dataProvider = nullptr;
 }
 
 void NewEncoder::end() {
@@ -81,13 +83,8 @@ void NewEncoder::configure(uint8_t aPin, uint8_t bPin, int16_t minValue,
 	if (active) {
 		end();
 	}
-	
-	if (!dataProvider) {
-		end();
-		return;
-	}
 
-	this->dataProvider = dataProvider;
+	this->dataProvider = dataProvider ? dataProvider : DataProvider::createDefault();
 	dataProvider->configure(aPin, bPin, this);
 
 	_minValue = minValue;
