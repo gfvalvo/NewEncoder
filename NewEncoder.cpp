@@ -50,9 +50,9 @@ const NewEncoder::encoderStateTransition NewEncoder::halfPulseTransitionTable[] 
 };
 
 NewEncoder::NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue,
-		int16_t maxValue, int16_t initalValue, uint8_t type, DataProvider *dataProvider) {
+		int16_t maxValue, int16_t initalValue, uint8_t type, DataProvider *provider) {
 	active = false;
-	configure(aPin, bPin, minValue, maxValue, initalValue, type, dataProvider);
+	configure(aPin, bPin, minValue, maxValue, initalValue, type, provider);
 }
 
 NewEncoder::NewEncoder() {
@@ -78,13 +78,16 @@ void NewEncoder::end() {
 }
 
 void NewEncoder::configure(uint8_t aPin, uint8_t bPin, int16_t minValue,
-		int16_t maxValue, int16_t initalValue, uint8_t type, DataProvider *dataProvider) {
+		int16_t maxValue, int16_t initalValue, uint8_t type, DataProvider *provider) {
 
 	if (active) {
 		end();
 	}
 
-	this->dataProvider = dataProvider ? dataProvider : DataProvider::createDefault();
+	this->dataProvider = provider;
+	if (provider == nullptr) {
+		this->dataProvider = DataProvider::createDefault();
+	}
 	dataProvider->configure(aPin, bPin, this);
 
 	_minValue = minValue;
@@ -350,6 +353,6 @@ void ESP_ISR NewEncoder::updateValue(uint8_t updatedStateVariable) {
 	stateChanged = true;
 }
 
-void ESP_ISR NewEncoder::checkPinChange(uint8_t index) { 
+void NewEncoder::checkPinChange(uint8_t index) { 
 	pinChangeHandler(index); 
 };

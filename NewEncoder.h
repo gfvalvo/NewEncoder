@@ -18,7 +18,7 @@
 
 class NewEncoder: public DataConsumer {
 protected:
-	virtual void ESP_ISR checkPinChange(uint8_t index) override;
+	virtual void checkPinChange(uint8_t index) override;
 
 public:
 	enum EncoderClick {
@@ -35,11 +35,11 @@ private:
 	using encoderStateTransition = uint8_t[4];
 
 public:
-	NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE, DataProvider *dataProvider = nullptr);
+	NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE, DataProvider *provider = nullptr);
 	NewEncoder();
 	virtual ~NewEncoder();
 	virtual bool begin();
-	virtual void configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE,  DataProvider *dataProvider = nullptr);
+	virtual void configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE,  DataProvider *provider = nullptr);
 	virtual void end();
 	bool enabled() const;
 	void attachCallback(EncoderCallBack cback, void *uPtr = nullptr);

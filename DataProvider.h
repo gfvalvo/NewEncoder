@@ -31,7 +31,7 @@
 class DataConsumer {
 	friend class InterruptDataProvider;
 protected:
-	virtual void ESP_ISR checkPinChange(uint8_t index) = 0;
+	virtual void checkPinChange(uint8_t index) = 0;
 };
 
 class DataProvider {
@@ -57,7 +57,7 @@ public:
 	virtual DataProvider& operator=(const DataProvider&) = delete; // delete operator=(). no assignment allowed
 
 protected:
-	DataConsumer *_target;
+	DataConsumer *_target = nullptr;
 	
 	uint8_t _aPin = 0, _bPin = 0;
 	volatile uint8_t _aPinValue, _bPinValue;

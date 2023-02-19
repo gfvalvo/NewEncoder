@@ -104,7 +104,7 @@ void ESP_ISR InterruptDataProvider::aPinChange() {
 		return;
 	}
 	_aPinValue = newPinValue;
-	if (!_target) return;
+	if (_target == nullptr) return;
 	_target->checkPinChange(0b00 | _aPinValue);  // Falling aPin == 0b00, Rising aPin = 0b01;
 }
 
@@ -114,7 +114,7 @@ void ESP_ISR InterruptDataProvider::bPinChange() {
 		return;
 	}
 	_bPinValue = newPinValue;
-	if (!_target) return;
+	if (_target == nullptr) return;
 	_target->checkPinChange(0b10 | _bPinValue);  // Falling bPin == 0b10, Rising bPin = 0b11;
 }
 
