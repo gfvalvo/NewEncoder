@@ -1,35 +1,35 @@
 /*
- * DdataProvider.cpp
+ * InterruptDataProvider.cpp
  */
 
-#include "DataProvider.h"
+#include "InterruptDataProvider.h"
 
 #ifndef USE_FUNCTIONAL_ISR
-DataProvider::isrInfo DataProvider::_isrTable[CORE_NUM_INTERRUPT];
+InterruptDataProvider::isrInfo InterruptDataProvider::_isrTable[CORE_NUM_INTERRUPT];
 #endif
 
-DataProvider::DataProvider(uint8_t aPin, uint8_t bPin, DataConsumer *target) {
+InterruptDataProvider::InterruptDataProvider(uint8_t aPin, uint8_t bPin, DataConsumer *target) {
 	configure(aPin, bPin, target);
 }
 
-DataProvider::DataProvider() {
+InterruptDataProvider::InterruptDataProvider() {
 	_aPin_register = nullptr;
 	_bPin_register = nullptr;
 	_target = nullptr;
 }
 
-DataProvider::~DataProvider() {
+InterruptDataProvider::~InterruptDataProvider() {
 	end();
 }
 
-void DataProvider::end() {
+void InterruptDataProvider::end() {
 	int16_t _interruptA = digitalPinToInterrupt(_aPin);
 	int16_t _interruptB = digitalPinToInterrupt(_bPin);
 	detachInterrupt(_interruptA);
 	detachInterrupt(_interruptB);
 }
 
-void DataProvider::configure(uint8_t aPin, uint8_t bPin, DataConsumer *target) {
+void InterruptDataProvider::configure(uint8_t aPin, uint8_t bPin, DataConsumer *target) {
 	_aPin = aPin;
 	_bPin = bPin;
 	_aPin_register = PIN_TO_BASEREG(aPin);
@@ -39,7 +39,7 @@ void DataProvider::configure(uint8_t aPin, uint8_t bPin, DataConsumer *target) {
 	_target = target;
 }
 
-bool DataProvider::begin() {
+bool InterruptDataProvider::begin() {
 	if (_aPin == _bPin) {
 		return false;
 	}
@@ -67,14 +67,14 @@ bool DataProvider::begin() {
 
 #ifndef USE_FUNCTIONAL_ISR
 	_isrTable[_interruptA].objectPtr = this;
-	_isrTable[_interruptA].functPtr = &DataProvider::aPinChange;
+	_isrTable[_interruptA].functPtr = &InterruptDataProvider::aPinChange;
 	auto isrA = getIsr(_interruptA);
 	if (isrA == nullptr) {
 		return false;
 	}
 
 	_isrTable[_interruptB].objectPtr = this;
-	_isrTable[_interruptB].functPtr = &DataProvider::bPinChange;
+	_isrTable[_interruptB].functPtr = &InterruptDataProvider::bPinChange;
 	auto isrB = getIsr(_interruptB);
 	if (isrB == nullptr) {
 		return false;
@@ -98,7 +98,7 @@ bool DataProvider::begin() {
 	return true;
 }
 
-void ESP_ISR DataProvider::aPinChange() {
+void ESP_ISR InterruptDataProvider::aPinChange() {
 	uint8_t newPinValue = DIRECT_PIN_READ(_aPin_register, _aPin_bitmask);
 	if (newPinValue == _aPinValue) {
 		return;
@@ -108,7 +108,7 @@ void ESP_ISR DataProvider::aPinChange() {
 	_target->checkPinChange(0b00 | _aPinValue);  // Falling aPin == 0b00, Rising aPin = 0b01;
 }
 
-void ESP_ISR DataProvider::bPinChange() {
+void ESP_ISR InterruptDataProvider::bPinChange() {
 	uint8_t newPinValue = DIRECT_PIN_READ(_bPin_register, _bPin_bitmask);
 	if (newPinValue == _bPinValue) {
 		return;
@@ -118,10 +118,10 @@ void ESP_ISR DataProvider::bPinChange() {
 	_target->checkPinChange(0b10 | _bPinValue);  // Falling bPin == 0b10, Rising bPin = 0b11;
 }
 
-void DataProvider::interruptOn() const { 
+void InterruptDataProvider::interruptOn() const { 
 	interrupts(); 
 }
 
-void DataProvider::interruptOff() const {
+void InterruptDataProvider::interruptOff() const {
 	noInterrupts();
 }

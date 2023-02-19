@@ -1,5 +1,5 @@
 /*
- * DataProvider.h
+ * InterruptDataProvider.h
  */
 #ifndef DATAPROVIDER_H_
 #define DATAPROVIDER_H_
@@ -29,7 +29,7 @@
 // #define DIRECT_PIN_READ(base, mask)     (((*(base)) & (mask)) ? 1 : 0)
 
 class DataConsumer {
-	friend class DataProvider;
+	friend class InterruptDataProvider;
 protected:
 	virtual void ESP_ISR checkPinChange(uint8_t index) = 0;
 };
@@ -39,20 +39,18 @@ class DataProvider {
 public:
 	DataProvider(uint8_t aPin, uint8_t bPin, DataConsumer *target);
 	DataProvider();
-	virtual ~DataProvider();
-	virtual bool begin();
-	virtual void configure(uint8_t aPin, uint8_t bPin, DataConsumer *target);
-	virtual void end();
+	virtual ~DataProvider() = 0;
+	virtual bool begin() = 0;
+	virtual void configure(uint8_t aPin, uint8_t bPin, DataConsumer *target) = 0;
+	virtual void end() = 0;
 
-	virtual void interruptOn() const;
-	virtual void interruptOff() const;
+	virtual void interruptOn() const = 0;
+	virtual void interruptOff() const = 0;
 
 	uint8_t aPinValue() const { return _aPinValue; };
 	uint8_t bPinValue() const { return _bPinValue; };
 
-private:
-	void aPinChange();
-	void bPinChange();
+protected:
 	DataConsumer *_target;
 	
 	uint8_t _aPin = 0, _bPin = 0;
@@ -61,38 +59,6 @@ private:
 	volatile IO_REG_TYPE *_bPin_register;
 	volatile IO_REG_TYPE _aPin_bitmask;
 	volatile IO_REG_TYPE _bPin_bitmask;
-
-#ifndef USE_FUNCTIONAL_ISR
-	using PinChangeFunction = void (DataProvider::*)();
-	using isrFunct = void (*)();
-
-	struct isrInfo {
-		DataProvider *objectPtr;
-		PinChangeFunction functPtr;
-	};
-	static isrInfo _isrTable[CORE_NUM_INTERRUPT];
-
-	template<uint8_t NUM_INTERRUPTS = CORE_NUM_INTERRUPT>
-	static isrFunct getIsr(uint8_t intNumber);
-#endif
 };
-
-#ifndef USE_FUNCTIONAL_ISR
-template<uint8_t NUM_INTERRUPTS>
-DataProvider::isrFunct DataProvider::getIsr(uint8_t intNumber) {
-	if (intNumber == (NUM_INTERRUPTS - 1)) {
-		return [] {
-			((_isrTable[NUM_INTERRUPTS - 1].objectPtr)->*(_isrTable[NUM_INTERRUPTS - 1].functPtr))();
-		};
-	}
-	return getIsr<NUM_INTERRUPTS - 1>(intNumber);
-}
-
-template<>
-inline DataProvider::isrFunct DataProvider::getIsr<0>(uint8_t intNum) {
-	(void) intNum;
-	return nullptr;
-}
-#endif
 
 #endif /* DATAPROVIDER_H_ */
