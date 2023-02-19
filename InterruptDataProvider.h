@@ -18,8 +18,8 @@ public:
 	uint8_t aPinValue() const { return _aPinValue; };
 	uint8_t bPinValue() const { return _bPinValue; };
 
-	InterruptDataProvider(const InterruptDataProvider&) = delete; // delete copy constructor. no copying allowed
-	InterruptDataProvider& operator=(const InterruptDataProvider&) = delete; // delete operator=(). no assignment allowed
+	InterruptDataProvider(const DataProvider&) = delete; // delete copy constructor. no copying allowed
+	virtual DataProvider& operator=(const DataProvider&) override = delete; // delete operator=(). no assignment allowed
 
 private:
 	void aPinChange();

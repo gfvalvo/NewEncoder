@@ -50,6 +50,9 @@ public:
 	uint8_t aPinValue() const { return _aPinValue; };
 	uint8_t bPinValue() const { return _bPinValue; };
 
+	DataProvider(const DataProvider&) = delete; // delete copy constructor. no copying allowed
+	virtual DataProvider& operator=(const DataProvider&) = delete; // delete operator=(). no assignment allowed
+
 protected:
 	DataConsumer *_target;
 	
