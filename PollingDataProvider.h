@@ -15,10 +15,7 @@ public:
 	virtual void interruptOn() const override {};
 	virtual void interruptOff() const override {};
 
-	uint8_t aPinValue() const { return _aPinValue; };
-	uint8_t bPinValue() const { return _bPinValue; };
-
-    virtual void inputUpdate() override { aPinChange(); bPinChange(); };
+	virtual void inputUpdate() override { aPinChange(); bPinChange(); };
 
 	PollingDataProvider(const DataProvider&) = delete; // delete copy constructor. no copying allowed
 	virtual PollingDataProvider& operator=(const DataProvider&) override = delete; // delete operator=(). no assignment allowed
@@ -26,7 +23,7 @@ public:
 private:
 	void aPinChange();
 	void bPinChange();
-    uint8_t *_input_buffer;
+	uint8_t *_input_buffer;
 };
 
 #endif /* POLLING_DATA_PROVIDER_H_ */
