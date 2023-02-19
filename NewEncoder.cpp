@@ -49,25 +49,21 @@ const NewEncoder::encoderStateTransition NewEncoder::halfPulseTransitionTable[] 
 		{ DEBOUNCE_3, DETENT_1, DEBOUNCE_2, DETENT_1 }  // DETENT_1 0b111
 };
 
-#ifndef USE_FUNCTIONAL_ISR
-NewEncoder::isrInfo NewEncoder::_isrTable[CORE_NUM_INTERRUPT];
-#endif
-
 NewEncoder::NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue,
-		int16_t maxValue, int16_t initalValue, uint8_t type) {
+		int16_t maxValue, int16_t initalValue, uint8_t type, DataProvider *provider) {
 	active = false;
-	configure(aPin, bPin, minValue, maxValue, initalValue, type);
+	configure(aPin, bPin, minValue, maxValue, initalValue, type, provider);
 }
 
 NewEncoder::NewEncoder() {
 	active = false;
 	configured = false;
-	_aPin_register = nullptr;
-	_bPin_register = nullptr;
 }
 
 NewEncoder::~NewEncoder() {
 	end();
+	delete dataProvider;
+	dataProvider = nullptr;
 }
 
 void NewEncoder::end() {
@@ -76,26 +72,26 @@ void NewEncoder::end() {
 	}
 	active = false;
 
-	int16_t _interruptA = digitalPinToInterrupt(_aPin);
-	int16_t _interruptB = digitalPinToInterrupt(_bPin);
-	detachInterrupt(_interruptA);
-	detachInterrupt(_interruptB);
+	if (dataProvider) {
+		dataProvider->end();
+	}
 }
 
 void NewEncoder::configure(uint8_t aPin, uint8_t bPin, int16_t minValue,
-		int16_t maxValue, int16_t initalValue, uint8_t type) {
+		int16_t maxValue, int16_t initalValue, uint8_t type, DataProvider *provider) {
 
 	if (active) {
 		end();
 	}
-	_aPin = aPin;
-	_bPin = bPin;
+
+	this->dataProvider = provider;
+	if (provider == nullptr) {
+		this->dataProvider = DataProvider::createDefault();
+	}
+	dataProvider->configure(aPin, bPin, this);
+
 	_minValue = minValue;
 	_maxValue = maxValue;
-	_aPin_register = PIN_TO_BASEREG(aPin);
-	_bPin_register = PIN_TO_BASEREG(bPin);
-	_aPin_bitmask = PIN_TO_BITMASK(aPin);
-	_bPin_bitmask = PIN_TO_BITMASK(bPin);
 
 	if (initalValue > _maxValue) {
 		initalValue = _maxValue;
@@ -123,68 +119,20 @@ bool NewEncoder::begin() {
 	if (!configured) {
 		return false;
 	}
-	if (_aPin == _bPin) {
-		return false;
-	}
 
-	using InterruptNumberType = decltype(NOT_AN_INTERRUPT);
-
-	InterruptNumberType _interruptA = static_cast<InterruptNumberType>(digitalPinToInterrupt(_aPin));
-	InterruptNumberType _interruptB = static_cast<InterruptNumberType>(digitalPinToInterrupt(_bPin));
-
-	if (_interruptA == _interruptB) {
-		return false;
-	}
-	if (_interruptA == NOT_AN_INTERRUPT) {
-		return false;
-	}
-	if (_interruptB == NOT_AN_INTERRUPT) {
-		return false;
-	}
 	if (_minValue >= _maxValue) {
 		return false;
 	}
 
-	pinMode(_aPin, INPUT_PULLUP);
-	pinMode(_bPin, INPUT_PULLUP);
-	delay(2);  // Seems to help ensure first reading after pinMode is correct
-	_aPinValue = DIRECT_PIN_READ(_aPin_register, _aPin_bitmask);
-	_bPinValue = DIRECT_PIN_READ(_bPin_register, _bPin_bitmask);
-	currentStateVariable = (_bPinValue << 1) | _aPinValue;
+	if (!dataProvider->begin()) {
+		return false;
+	}
+
+	currentStateVariable = (dataProvider->bPinValue() << 1) | dataProvider->aPinValue();
 	if ((tablePtr == halfPulseTransitionTable) && (currentStateVariable == (DETENT_1 & 0b11))) {
 		currentStateVariable = DETENT_1;
 	}
 
-#ifndef USE_FUNCTIONAL_ISR
-	_isrTable[_interruptA].objectPtr = this;
-	_isrTable[_interruptA].functPtr = &NewEncoder::aPinChange;
-	auto isrA = getIsr(_interruptA);
-	if (isrA == nullptr) {
-		return false;
-	}
-
-	_isrTable[_interruptB].objectPtr = this;
-	_isrTable[_interruptB].functPtr = &NewEncoder::bPinChange;
-	auto isrB = getIsr(_interruptB);
-	if (isrB == nullptr) {
-		return false;
-	}
-
-	attachInterrupt(_interruptA, isrA, CHANGE);
-	attachInterrupt(_interruptB, isrB, CHANGE);
-
-#else
-	auto aPinIsr = [this] {
-		this->aPinChange();
-	};
-	attachInterrupt(_interruptA, aPinIsr, CHANGE);
-
-	auto bPinIsr = [this] {
-		this->bPinChange();
-	};
-	attachInterrupt(_interruptB, bPinIsr, CHANGE);
-
-#endif
 	active = true;
 	return true;
 }
@@ -192,10 +140,10 @@ bool NewEncoder::begin() {
 bool NewEncoder::getState(EncoderState &state) {
 	bool localStateChanged = stateChanged;
 	if (localStateChanged) {
-		noInterrupts();
+		dataProvider->interruptOff();
 		memcpy((void*) &localState, (void*) &liveState, sizeof(EncoderState));
 		stateChanged = false;
-		interrupts();
+		dataProvider->interruptOn();
 	} else {
 		localState.currentClick = NoClick;
 	}
@@ -210,7 +158,7 @@ bool NewEncoder::getAndSet(int16_t val, EncoderState &Oldstate, EncoderState &Ne
 	} else if (val > _maxValue) {
 		val = _maxValue;
 	}
-	noInterrupts();
+	dataProvider->interruptOff();
 	changed = stateChanged;
 	stateChanged = false;
 	memcpy((void*) &Oldstate, (void*) &liveState, sizeof(EncoderState));
@@ -220,7 +168,7 @@ bool NewEncoder::getAndSet(int16_t val, EncoderState &Oldstate, EncoderState &Ne
 	liveState.currentValue = val;
 	liveState.currentClick = NoClick;
 	memcpy((void*) &localState, (void*) &liveState, sizeof(EncoderState));
-	interrupts();
+	dataProvider->interruptOn();
 	memcpy((void*) &Newstate, (void*) &localState, sizeof(EncoderState));
 	return changed;
 }
@@ -235,14 +183,14 @@ bool NewEncoder::newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent,
 	if (newCurrent > newMax) {
 		newCurrent = newMax;
 	}
-	noInterrupts();
+	dataProvider->interruptOff();
 	stateChanged = false;
 	liveState.currentValue = newCurrent;
 	liveState.currentClick = NoClick;
 	_minValue = newMin;
 	_maxValue = newMax;
 	memcpy((void*) &localState, (void*) &liveState, sizeof(EncoderState));
-	interrupts();
+	dataProvider->interruptOn();
 	memcpy((void*) &state, (void*) &localState, sizeof(EncoderState));
 	return true;
 }
@@ -263,11 +211,11 @@ int16_t NewEncoder::setValue(int16_t val) {
 		val = _maxValue;
 	}
 #if defined(__AVR__)
-	noInterrupts();  // 16-bit access not atomic on 8-bit processor
+	dataProvider->interruptOff();  // 16-bit access not atomic on 8-bit processor
 #endif
 	liveState.currentValue = val;
 #if defined(__AVR__)
-	interrupts();
+	dataProvider->interruptOn();
 #endif
 	return val;
 }
@@ -279,11 +227,11 @@ int16_t NewEncoder::operator =(int16_t val) {
 		val = _maxValue;
 	}
 #if defined(__AVR__)
-	noInterrupts();  // 16-bit access not atomic on 8-bit processor
+	dataProvider->interruptOff();  // 16-bit access not atomic on 8-bit processor
 #endif
 	liveState.currentValue = val;
 #if defined(__AVR__)
-	interrupts();
+	dataProvider->interruptOn();
 #endif
 	return val;
 }
@@ -291,9 +239,9 @@ int16_t NewEncoder::operator =(int16_t val) {
 int16_t NewEncoder::getValue() {
 #if defined(__AVR__)
 	int16_t val;
-	noInterrupts();  // 16-bit access not atomic on 8-bit processor
+	dataProvider->interruptOff();  // 16-bit access not atomic on 8-bit processor
 	val = liveState.currentValue;
-	interrupts();
+	dataProvider->interruptOn();
 	return val;
 #else
 	return liveState.currentValue;
@@ -303,9 +251,9 @@ int16_t NewEncoder::getValue() {
 NewEncoder::operator int16_t() const {
 #if defined(__AVR__)
 	int16_t val;
-	noInterrupts();  // 16-bit access not atomic on 8-bit processor
+	dataProvider->interruptOff();  // 16-bit access not atomic on 8-bit processor
 	val = liveState.currentValue;
-	interrupts();
+	dataProvider->interruptOn();
 	return val;
 #else
 	return liveState.currentValue;
@@ -319,11 +267,11 @@ int16_t NewEncoder::getAndSet(int16_t val) {
 	} else if (val > _maxValue) {
 		val = _maxValue;
 	}
-	noInterrupts()
+	dataProvider->interruptOff()
 	;
 	localCurrentValue = liveState.currentValue;
 	liveState.currentValue = val;
-	interrupts()
+	dataProvider->interruptOn()
 	;
 	return localCurrentValue;
 }
@@ -349,7 +297,7 @@ bool NewEncoder::downClick() {
 bool NewEncoder::newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent) {
 	bool success = false;
 #if defined(__AVR__)
-	noInterrupts();  // 16-bit access not atomic on 8-bit processor
+	dataProvider->interruptOff();  // 16-bit access not atomic on 8-bit processor
 #endif
 	if (active) {
 		if (newMax > newMin) {
@@ -365,27 +313,9 @@ bool NewEncoder::newSettings(int16_t newMin, int16_t newMax, int16_t newCurrent)
 		}
 	}
 #if defined(__AVR__)
-	interrupts();
+	dataProvider->interruptOn();
 #endif
 	return success;
-}
-
-void ESP_ISR NewEncoder::aPinChange() {
-	uint8_t newPinValue = DIRECT_PIN_READ(_aPin_register, _aPin_bitmask);
-	if (newPinValue == _aPinValue) {
-		return;
-	}
-	_aPinValue = newPinValue;
-	pinChangeHandler(0b00 | _aPinValue);  // Falling aPin == 0b00, Rising aPin = 0b01;
-}
-
-void ESP_ISR NewEncoder::bPinChange() {
-	uint8_t newPinValue = DIRECT_PIN_READ(_bPin_register, _bPin_bitmask);
-	if (newPinValue == _bPinValue) {
-		return;
-	}
-	_bPinValue = newPinValue;
-	pinChangeHandler(0b10 | _bPinValue);  // Falling bPin == 0b10, Rising bPin = 0b11;
 }
 
 void ESP_ISR NewEncoder::pinChangeHandler(uint8_t index) {
@@ -422,3 +352,7 @@ void ESP_ISR NewEncoder::updateValue(uint8_t updatedStateVariable) {
 	}
 	stateChanged = true;
 }
+
+void NewEncoder::checkPinChange(uint8_t index) { 
+	pinChangeHandler(index); 
+};
