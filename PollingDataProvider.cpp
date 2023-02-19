@@ -68,6 +68,19 @@ void PollingDataProvider::bPinChange() {
 	_target->checkPinChange(0b10 | _bPinValue);  // Falling bPin == 0b10, Rising bPin = 0b11;
 }
 
+void PollingDataProvider::inputUpdate() {
+	aPinChange();
+	bPinChange();
+}
+
+void PollingDataProvider::interruptOn() const {
+	// no need for polling
+}
+
+void PollingDataProvider::interruptOff() const {
+	// no need for polling
+}
+
 DataProvider* DataProvider::createPollingDataProvider(uint8_t *input_buffer) {
 	return new PollingDataProvider(input_buffer);
 }

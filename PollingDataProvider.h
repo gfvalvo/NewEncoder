@@ -12,10 +12,10 @@ public:
 	virtual void configure(uint8_t aPin, uint8_t bPin, DataConsumer *target) override;
 	virtual void end() override;
 
-	virtual void interruptOn() const override {};
-	virtual void interruptOff() const override {};
+	virtual void interruptOn() const override;
+	virtual void interruptOff() const override;
 
-	virtual void inputUpdate() override { aPinChange(); bPinChange(); };
+	virtual void inputUpdate() override;
 
 	PollingDataProvider(const DataProvider&) = delete; // delete copy constructor. no copying allowed
 	virtual PollingDataProvider& operator=(const DataProvider&) override = delete; // delete operator=(). no assignment allowed
