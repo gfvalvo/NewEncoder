@@ -1,5 +1,5 @@
 /*
- * InterruptDataProvider.h
+ * DataProvider.h
  */
 #ifndef DATAPROVIDER_H_
 #define DATAPROVIDER_H_
@@ -23,13 +23,10 @@
 
 #include "utility/interrupt_pins.h"
 #include "utility/direct_pin_read.h"
-// #define IO_REG_TYPE			uint8_t
-// #define PIN_TO_BASEREG(pin)             (portInputRegister(digitalPinToPort(pin)))
-// #define PIN_TO_BITMASK(pin)             (digitalPinToBitMask(pin))
-// #define DIRECT_PIN_READ(base, mask)     (((*(base)) & (mask)) ? 1 : 0)
 
 class DataConsumer {
 	friend class InterruptDataProvider;
+	friend class PollingDataProvider;
 protected:
 	virtual void checkPinChange(uint8_t index) = 0;
 };
@@ -38,6 +35,7 @@ class DataProvider {
 public:
 	static DataProvider* createDefault() { return DataProvider::createInterruptDataProvider(); };
 	static DataProvider* createInterruptDataProvider();
+	static DataProvider* createPollingDataProvider(uint8_t* input_buffer);
 	
 public:
 	DataProvider(uint8_t aPin, uint8_t bPin, DataConsumer *target) {};
@@ -55,6 +53,8 @@ public:
 
 	DataProvider(const DataProvider&) = delete; // delete copy constructor. no copying allowed
 	virtual DataProvider& operator=(const DataProvider&) = delete; // delete operator=(). no assignment allowed
+
+	virtual void inputUpdate() {}; // force to check the pin change, only used in polling mode
 
 protected:
 	DataConsumer *_target = nullptr;

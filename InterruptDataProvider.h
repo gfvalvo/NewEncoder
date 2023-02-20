@@ -15,9 +15,6 @@ public:
 	virtual void interruptOn() const override;
 	virtual void interruptOff() const override;
 
-	uint8_t aPinValue() const { return _aPinValue; };
-	uint8_t bPinValue() const { return _bPinValue; };
-
 	InterruptDataProvider(const DataProvider&) = delete; // delete copy constructor. no copying allowed
 	virtual DataProvider& operator=(const DataProvider&) override = delete; // delete operator=(). no assignment allowed
 
