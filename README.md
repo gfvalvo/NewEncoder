@@ -49,7 +49,7 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
  - **int16_t maxValue** - Highest count value to be returned. Further clockwise rotation produces no further change in output.
  - **int16_t initalValue** - Initial encoder value. Should be between minValue and maxValue
  - **uint8_t type** Type of encoder - FULL_PULSE (default, one quadrature pulse per detent) or HALF_PULSE (one quadrature pulse for every two detents)
- - **DataProvider *provider** - Either `InterruptDataProvider` or `PollingDataProvider`, the data provider does the underlying jobs to handle the input changes on each pin. Please check the [`POLLING.md`](POLLING.md) for more details.
+ - **DataProvider \*provider** - Either `InterruptDataProvider` or `PollingDataProvider`, the data provider does the underlying jobs to handle the input changes on each pin. **Please check the [`POLLING.md`](POLLING.md) for more details**.
  
 ### Constructor - only creates object
 
