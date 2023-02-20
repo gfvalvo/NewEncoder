@@ -41,7 +41,7 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
 ## Public NewEncoder Members Functions:
 ### Constructor - creates  and configures object
 
-    NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE)
+    NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE, DataProvider *provider = nullptr)
 **Arguments:**
  - **uint8_t aPin** - Hardware pin connected to the encoder's "A" terminal.
  - **uint8_t bPin** - Hardware pin connected to the encoder's "B" terminal.
@@ -49,6 +49,7 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
  - **int16_t maxValue** - Highest count value to be returned. Further clockwise rotation produces no further change in output.
  - **int16_t initalValue** - Initial encoder value. Should be between minValue and maxValue
  - **uint8_t type** Type of encoder - FULL_PULSE (default, one quadrature pulse per detent) or HALF_PULSE (one quadrature pulse for every two detents)
+ - **DataProvider *provider** - Either `InterruptDataProvider` or `PollingDataProvider`, the data provider does the underlying jobs to handle the input changes on each pin. Please check the [`POLLING.md`](POLLING.md) for more details.
  
 ### Constructor - only creates object
 
@@ -196,9 +197,6 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
    - **int16_t newCurrent** - New Encoder value
    
 **Returns:**  - true if change was successful, false otherwise
-
-## Polling mode
-Please check the [`POLLING.md`](POLLING.md) for the usage.
 
 ## Credits:
 The **direct_pin_read.h** and **interrupt_pins.h** header files were "borrowed" directly from the [PRJC Encoder Library](https://www.pjrc.com/teensy/td_libs_Encoder.html) Copyright (c)  PJRC.COM, LLC - Paul Stoffregen. All typical license verbiage applies.
