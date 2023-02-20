@@ -67,14 +67,14 @@ bool InterruptDataProvider::begin() {
 
 #ifndef USE_FUNCTIONAL_ISR
 	_isrTable[_interruptA].objectPtr = this;
-	_isrTable[_interruptA].functPtr = &InterruptDataProvider::aPinChange;
+	_isrTable[_interruptA].functPtr = &InterruptDataProvider::onAPinChange;
 	auto isrA = getIsr(_interruptA);
 	if (isrA == nullptr) {
 		return false;
 	}
 
 	_isrTable[_interruptB].objectPtr = this;
-	_isrTable[_interruptB].functPtr = &InterruptDataProvider::bPinChange;
+	_isrTable[_interruptB].functPtr = &InterruptDataProvider::onBPinChange;
 	auto isrB = getIsr(_interruptB);
 	if (isrB == nullptr) {
 		return false;
@@ -85,12 +85,12 @@ bool InterruptDataProvider::begin() {
 
 #else
 	auto aPinIsr = [this] {
-		this->aPinChange();
+		this->onAPinChange();
 	};
 	attachInterrupt(_interruptA, aPinIsr, CHANGE);
 
 	auto bPinIsr = [this] {
-		this->bPinChange();
+		this->onBPinChange();
 	};
 	attachInterrupt(_interruptB, bPinIsr, CHANGE);
 
@@ -98,24 +98,12 @@ bool InterruptDataProvider::begin() {
 	return true;
 }
 
-void ESP_ISR InterruptDataProvider::aPinChange() {
-	uint8_t newPinValue = DIRECT_PIN_READ(_aPin_register, _aPin_bitmask);
-	if (newPinValue == _aPinValue) {
-		return;
-	}
-	_aPinValue = newPinValue;
-	if (_target == nullptr) return;
-	_target->checkPinChange(0b00 | _aPinValue);  // Falling aPin == 0b00, Rising aPin = 0b01;
+void ESP_ISR InterruptDataProvider::onAPinChange() {
+	this->aPinChange(DIRECT_PIN_READ(_aPin_register, _aPin_bitmask));
 }
 
-void ESP_ISR InterruptDataProvider::bPinChange() {
-	uint8_t newPinValue = DIRECT_PIN_READ(_bPin_register, _bPin_bitmask);
-	if (newPinValue == _bPinValue) {
-		return;
-	}
-	_bPinValue = newPinValue;
-	if (_target == nullptr) return;
-	_target->checkPinChange(0b10 | _bPinValue);  // Falling bPin == 0b10, Rising bPin = 0b11;
+void ESP_ISR InterruptDataProvider::onBPinChange() {
+	this->bPinChange(DIRECT_PIN_READ(_bPin_register, _bPin_bitmask));
 }
 
 void InterruptDataProvider::interruptOn() const { 

@@ -21,8 +21,6 @@ public:
 	virtual PollingDataProvider& operator=(const DataProvider&) override = delete; // delete operator=(). no assignment allowed
 
 private:
-	void aPinChange();
-	void bPinChange();
 	uint8_t *_input_buffer;
 };
 
