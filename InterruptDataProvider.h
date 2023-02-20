@@ -19,8 +19,8 @@ public:
 	virtual DataProvider& operator=(const DataProvider&) override = delete; // delete operator=(). no assignment allowed
 
 private:
-	void aPinChange();
-	void bPinChange();
+	void onAPinChange();
+	void onBPinChange();
 
 #ifndef USE_FUNCTIONAL_ISR
 	using PinChangeFunction = void (InterruptDataProvider::*)();

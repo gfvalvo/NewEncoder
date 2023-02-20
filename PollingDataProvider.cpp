@@ -48,29 +48,9 @@ bool PollingDataProvider::begin() {
 	return true;
 }
 
-void PollingDataProvider::aPinChange() {
-	uint8_t newPinValue = POLLING_DIRECT_PIN_READ(_aPin_register, _aPin_bitmask);
-	if (newPinValue == _aPinValue) {
-		return;
-	}
-	_aPinValue = newPinValue;
-	if (_target == nullptr) return;
-	_target->checkPinChange(0b00 | _aPinValue);  // Falling aPin == 0b00, Rising aPin = 0b01;
-}
-
-void PollingDataProvider::bPinChange() {
-	uint8_t newPinValue = POLLING_DIRECT_PIN_READ(_bPin_register, _bPin_bitmask);
-	if (newPinValue == _bPinValue) {
-		return;
-	}
-	_bPinValue = newPinValue;
-	if (_target == nullptr) return;
-	_target->checkPinChange(0b10 | _bPinValue);  // Falling bPin == 0b10, Rising bPin = 0b11;
-}
-
 void PollingDataProvider::inputUpdate() {
-	aPinChange();
-	bPinChange();
+	aPinChange(POLLING_DIRECT_PIN_READ(_aPin_register, _aPin_bitmask));
+	bPinChange(POLLING_DIRECT_PIN_READ(_bPin_register, _bPin_bitmask));
 }
 
 void PollingDataProvider::interruptOn() const {

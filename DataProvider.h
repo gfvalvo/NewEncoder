@@ -25,8 +25,7 @@
 #include "utility/direct_pin_read.h"
 
 class DataConsumer {
-	friend class InterruptDataProvider;
-	friend class PollingDataProvider;
+	friend class DataProvider;
 protected:
 	virtual void checkPinChange(uint8_t index) = 0;
 };
@@ -55,6 +54,25 @@ public:
 	virtual DataProvider& operator=(const DataProvider&) = delete; // delete operator=(). no assignment allowed
 
 	virtual void inputUpdate() {}; // force to check the pin change, only used in polling mode
+
+protected:
+	void aPinChange(uint8_t newPinValue) {
+		if (newPinValue == _aPinValue) {
+			return;
+		}
+		_aPinValue = newPinValue;
+		if (_target == nullptr) return;
+		_target->checkPinChange(0b00 | _aPinValue);  // Falling aPin == 0b00, Rising aPin = 0b01;
+	};
+
+	void bPinChange(uint8_t newPinValue) {
+		if (newPinValue == _bPinValue) {
+			return;
+		}
+		_bPinValue = newPinValue;
+		if (_target == nullptr) return;
+		_target->checkPinChange(0b10 | _bPinValue);  // Falling bPin == 0b10, Rising bPin = 0b11;
+	}
 
 protected:
 	DataConsumer *_target = nullptr;
