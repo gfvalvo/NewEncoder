@@ -35,11 +35,11 @@ private:
 	using encoderStateTransition = uint8_t[4];
 
 public:
-	NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE, DataProvider *provider = nullptr);
+	NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE, uint8_t *pollingBuffer = nullptr);
 	NewEncoder();
 	virtual ~NewEncoder();
 	virtual bool begin();
-	virtual void configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE,  DataProvider *provider = nullptr);
+	virtual void configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE,  uint8_t *pollingBuffer = nullptr);
 	virtual void end();
 	bool enabled() const;
 	void attachCallback(EncoderCallBack cback, void *uPtr = nullptr);
@@ -49,6 +49,8 @@ public:
 
 	NewEncoder(const NewEncoder&) = delete; // delete copy constructor. no copying allowed
 	NewEncoder& operator=(const NewEncoder&) = delete; // delete operator=(). no assignment allowed
+
+	void pollInput() { dataProvider->inputUpdate(); };
 
 protected:
 	// This function may be implemented in an inherited class to customize the increment/decrement and min/max behavior.
@@ -65,7 +67,6 @@ protected:
 private:
 	void pinChangeHandler(uint8_t index);
 	bool active = false;
-	DataProvider *dataProvider = nullptr;
 
 	const encoderStateTransition *tablePtr = nullptr;
 	volatile uint8_t currentStateVariable;
