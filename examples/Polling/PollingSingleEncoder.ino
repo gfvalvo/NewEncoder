@@ -10,8 +10,7 @@
 #define PIN_B 5
 
 volatile int16_t pollingBuffer = 0xFF;
-DataProvider *pollingDataProvider = DataProvider::createPollingDataProvider((uint8_t *)&pollingBuffer);
-NewEncoder encoder(PIN_A, PIN_B, -20, 20, 0, FULL_PULSE, pollingDataProvider);
+NewEncoder encoder(PIN_A, PIN_B, -20, 20, 0, FULL_PULSE, (uint8_t *)pollingBuffer);
 int16_t prevEncoderValue;
 
 void setup() {
@@ -48,7 +47,7 @@ void updatePollingBuffer() {
   pollingBuffer = (pollingBuffer & ~(0b1 << PIN_B)) | (valueB << PIN_B);
 
   // read data from the input buffer, and update its linked encoder.
-  pollingDataProvider->inputUpdate();
+  encoder.pollInput();
 }
 
 void loop() {
