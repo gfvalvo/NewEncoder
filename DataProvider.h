@@ -27,12 +27,12 @@
 class DataConsumer {
 	friend class DataProvider;
 protected:
+	DataProvider *dataProvider = nullptr;
 	virtual void checkPinChange(uint8_t index) = 0;
 };
 
 class DataProvider {
 public:
-	static DataProvider* createDefault() { return DataProvider::createInterruptDataProvider(); };
 	static DataProvider* createInterruptDataProvider();
 	static DataProvider* createPollingDataProvider(uint8_t* input_buffer);
 	

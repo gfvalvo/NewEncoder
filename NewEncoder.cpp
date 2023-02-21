@@ -50,9 +50,9 @@ const NewEncoder::encoderStateTransition NewEncoder::halfPulseTransitionTable[] 
 };
 
 NewEncoder::NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue,
-		int16_t maxValue, int16_t initalValue, uint8_t type, DataProvider *provider) {
+		int16_t maxValue, int16_t initalValue, uint8_t type, uint8_t *pollingBuffer) {
 	active = false;
-	configure(aPin, bPin, minValue, maxValue, initalValue, type, provider);
+	configure(aPin, bPin, minValue, maxValue, initalValue, type, pollingBuffer);
 }
 
 NewEncoder::NewEncoder() {
@@ -78,16 +78,19 @@ void NewEncoder::end() {
 }
 
 void NewEncoder::configure(uint8_t aPin, uint8_t bPin, int16_t minValue,
-		int16_t maxValue, int16_t initalValue, uint8_t type, DataProvider *provider) {
+		int16_t maxValue, int16_t initalValue, uint8_t type, uint8_t *pollingBuffer) {
 
 	if (active) {
 		end();
 	}
-
-	this->dataProvider = provider;
-	if (provider == nullptr) {
-		this->dataProvider = DataProvider::createDefault();
+	
+	delete dataProvider;
+	if (pollingBuffer == nullptr) {
+		dataProvider = DataProvider::createInterruptDataProvider();
+	} else {
+		dataProvider = DataProvider::createPollingDataProvider(pollingBuffer);
 	}
+
 	dataProvider->configure(aPin, bPin, this);
 
 	_minValue = minValue;

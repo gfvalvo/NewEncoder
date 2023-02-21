@@ -1,9 +1,10 @@
 # NewEncoder
-Interrupt-driven rotary encoder library. Works both with encoders that produce one complete quadrature cycle every detent (such as [this Bourns unit sold by Adafruit](https://www.adafruit.com/product/377)) and those that produce one complete quadrature cycle for every two detents (such as [this Alps unit sold by Mouser](https://www.mouser.com/ProductDetail/alps/ec11e15244g1/?qs=YMSFtX0bdJDiV4LBO61anw==&countrycode=US&currencycode=USD)).
+Rotary encoder library. Works both with encoders that produce one complete quadrature cycle every detent (such as [this Bourns unit sold by Adafruit](https://www.adafruit.com/product/377)) and those that produce one complete quadrature cycle for every two detents (such as [this Alps unit sold by Mouser](https://www.mouser.com/ProductDetail/alps/ec11e15244g1/?qs=YMSFtX0bdJDiV4LBO61anw==&countrycode=US&currencycode=USD)).
 
 The encoders' switches are debounced using a state table approach.
 
-Two interrupt-capable pins are required for each encoder connected. Thus, only one encoder can be used with an Arduino Uno for example.
+The encoder can work either in interrupt-driven mode or polling mode.
+For the interrupt-driven mode, TWO interrupt-capable pins are required for each encoder connected. Thus, only one encoder can be used with an Arduino Uno for example.
 
 The encoders' "A" and "B" terminals should be connected to the processor's inputs and its common terminal should be grounded. The library enables the processor's internal pull-ups, so external ones are not required.
 # Version 2.x:
@@ -41,7 +42,7 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
 ## Public NewEncoder Members Functions:
 ### Constructor - creates  and configures object
 
-    NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE, DataProvider *provider = nullptr)
+    NewEncoder(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE, uint8_t *inputBuffer = nullptr)
 **Arguments:**
  - **uint8_t aPin** - Hardware pin connected to the encoder's "A" terminal.
  - **uint8_t bPin** - Hardware pin connected to the encoder's "B" terminal.
@@ -49,7 +50,7 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
  - **int16_t maxValue** - Highest count value to be returned. Further clockwise rotation produces no further change in output.
  - **int16_t initalValue** - Initial encoder value. Should be between minValue and maxValue
  - **uint8_t type** Type of encoder - FULL_PULSE (default, one quadrature pulse per detent) or HALF_PULSE (one quadrature pulse for every two detents)
- - **DataProvider \*provider** - Either `InterruptDataProvider` or `PollingDataProvider`, the data provider does the underlying jobs to handle the input changes on each pin. **Please check the [`POLLING.md`](POLLING.md) for more details**.
+ - **uint8_t \*inputBuffer** - The pointer to input buffer for polling mode. If it is NULL or nullptr, the encoder will work in interrupt-driven mode. **Please check the [`POLLING.md`](POLLING.md) for more details**.
  
 ### Constructor - only creates object
 
@@ -58,7 +59,7 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
 
 ### Configure or Re-configure an encoder object
 
-    void configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE);
+    void configure(uint8_t aPin, uint8_t bPin, int16_t minValue, int16_t maxValue, int16_t initalValue, uint8_t type = FULL_PULSE, uint8_t *inputBuffer = nullptr);
 **Arguments:** Same as Constructor
 **Returns:**    Nothing
 
@@ -74,6 +75,13 @@ This provides interfacing to the encoder, interrupt handling, and rotation count
 ### Disable an encoder object
 
      void end();
+  **Arguments:** None
+   
+  **Returns:**    Nothing
+
+### Poll the pin values from the input buffer
+
+     void pollInput();
   **Arguments:** None
    
   **Returns:**    Nothing
