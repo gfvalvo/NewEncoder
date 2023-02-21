@@ -27,10 +27,10 @@ NewEncoder encoder2(2, 3, -20, 20, 0, FULL_PULSE, (uint8_t *)buffer);
 ```
 
 ## Update encoder in polling mode
-With pulling mode, we need to call `DataProvider::pollInput()` to notify its encoder to check the latest state.
+With pulling mode, we need to call `NewEncoder::pollInput()` to notify its encoder to check the latest state.
 ```
 buffer = getLatestValue();
-pollingProvider->pollInput();
+encoder2.pollInput();
 ```
 
 For details, please check the sample sketch located at `examples/Polling/PollingSingleEncoder.ino`.
