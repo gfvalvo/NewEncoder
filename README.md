@@ -1,5 +1,7 @@
-# NewEncoder
+# NewEncoder-DualMode
 Rotary encoder library. Works both with encoders that produce one complete quadrature cycle every detent (such as [this Bourns unit sold by Adafruit](https://www.adafruit.com/product/377)) and those that produce one complete quadrature cycle for every two detents (such as [this Alps unit sold by Mouser](https://www.mouser.com/ProductDetail/alps/ec11e15244g1/?qs=YMSFtX0bdJDiV4LBO61anw==&countrycode=US&currencycode=USD)).
+
+This is a fork of the [**NewEncoder**](https://github.com/gfvalvo/NewEncoder) library, which is created by GFVALVO. Please contact GFVALVO for any uncleared licencing issue.
 
 The encoders' switches are debounced using a state table approach.
 
